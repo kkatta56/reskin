@@ -38,13 +38,9 @@ def startDataProcess(robot, reskin_sensor, r, filename, path="snake"):
     if path == "snake":
         robot.startSnakePath(r)
     elif path == "updown":
-        robot.setOrigin(r)
-        for i in range(3):
-            robot.move(8, 8, 0)
-            robot.move(8, 8, -8)
-        robot.move(8, 8, 0)
+        robot.upDown(r)
     else:
-        return "Error: no path specified"
+        return "Error: no valid path specified"
 
     # Stop buffer
     reskin_sensor.pause_buffering()
@@ -94,4 +90,4 @@ if __name__ == "__main__":
     # Initialize Dobot
     db = Dobot(port='/dev/ttyUSB0')
     origin = [177.79611206054688, -197.7755126953125, -87.25672912597656]
-    startDataProcess(db, sensor_stream, origin, "res_test.csv", path="snake")
+    startDataProcess(db, sensor_stream, origin, "res_test.csv", path="updown")
