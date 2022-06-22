@@ -25,7 +25,7 @@ def save_data(buff_dat, mag_num, file_name):
         csvwriter.writerow(fields)
         csvwriter.writerows(rows)
 
-def startDataProcess(robot, reskin_sensor, r, filename, path="snake"):
+def startDataProcess(robot, reskin_sensor, r, depth, filename, path="snake"):
     # Start sensor stream and buffering data
     reskin_sensor.start()
     if reskin_sensor.is_alive():
@@ -36,9 +36,9 @@ def startDataProcess(robot, reskin_sensor, r, filename, path="snake"):
 
     # Action during buffer
     if path == "snake":
-        robot.startSnakePath(r)
+        robot.startSnakePath(r,depth)
     elif path == "updown":
-        robot.upDown(r)
+        robot.upDown(r,depth)
     else:
         return "Error: no valid path specified"
 
@@ -89,5 +89,6 @@ if __name__ == "__main__":
 
     # Initialize Dobot
     db = Dobot(port='/dev/ttyUSB0')
-    origin = [177.79611206054688, -197.7755126953125, -87.25672912597656]
-    startDataProcess(db, sensor_stream, origin, "res_test.csv", path="updown")
+    origin = [177.79611206054688, -95.56216430664062, -87.25672912597656]
+    depth = 8
+    startDataProcess(db, sensor_stream, origin, depth, "res_test.csv", path="snake")
