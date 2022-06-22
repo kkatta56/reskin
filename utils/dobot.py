@@ -155,33 +155,32 @@ class Dobot:
     def checkQueueComplete(self):
         return self.cmd_id <= dType.GetQueuedCmdCurrentIndex(self.api)
 
-    def startSnakePath(self, r):
+    def startSnakePath(self, r, zmove):
         self.setOrigin(r)
         x = 0;
         y = 0;
         z = 0;
         xmove = 2;
         ymove = 2;
-        zmove = 8;
 
         for j in range(10):
             for i in range(10):
                 print([x,y])
                 if not ((x < 4 or x > 12) and (y < 4 or y > 12)):
-                    self.move([x, y, z])
-                    self.move([x, y, z - zmove])
-                    self.move([x, y, z])
+                    self.move([x, y, 0])
+                    self.move([x, y, -zmove])
+                    self.move([x, y, 0])
                 x += xmove
             xmove *= -1
             x += xmove
             y += ymove
 
-    def upDown(self, r):
+    def upDown(self, r, zmove):
         self.setOrigin(r)
         n = input("How many indentations should the robot make?")
         for i in range(int(n)):
             self.move([8, 8, 0])
-            self.move([8, 8, -8])
+            self.move([8, 8, -zmove])
         self.move([8, 8, 0])
 
 ##################### ORIGINS #####################
