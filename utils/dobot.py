@@ -162,13 +162,15 @@ class Dobot:
         z = 0;
         xmove = 4;
         ymove = 4;
-        zmove = 10;
+        zmove = 8;
 
         for j in range(5):
             for i in range(5):
-                self.move([x, y, z])
-                self.move([x, y, z - zmove])
-                self.move([x, y, z])
+                if ([x,y] != [0,0] and [x,y] != [0,16] and [x,y] != [16,0] and [x,y] != [16,16]):
+                    print(x,y)
+                    self.move([x, y, z])
+                    self.move([x, y, z - zmove])
+                    self.move([x, y, z])
                 x += xmove
             xmove *= -1
             x += xmove
@@ -184,4 +186,4 @@ class Dobot:
 
 ##################### ORIGINS #####################
 # [177.79611206054688, -197.7755126953125, -87.25672912597656]
-# [181.69895935058594, -99.56216430664062, -83.77088928222656]
+# [177.79611206054688, -95.56216430664062, -87.25672912597656]
