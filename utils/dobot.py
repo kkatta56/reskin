@@ -160,14 +160,14 @@ class Dobot:
         x = 0;
         y = 0;
         z = 0;
-        xmove = 4;
-        ymove = 4;
+        xmove = 2;
+        ymove = 2;
         zmove = 8;
 
-        for j in range(5):
-            for i in range(5):
-                if ([x,y] != [0,0] and [x,y] != [0,16] and [x,y] != [16,0] and [x,y] != [16,16]):
-                    print(x,y)
+        for j in range(10):
+            for i in range(10):
+                print([x,y])
+                if not ((x < 4 or x > 12) and (y < 4 or y > 12)):
                     self.move([x, y, z])
                     self.move([x, y, z - zmove])
                     self.move([x, y, z])
