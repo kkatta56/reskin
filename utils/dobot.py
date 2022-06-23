@@ -1,187 +1,114 @@
-import sys
-import os
-from datetime import datetime
-import platform
+#python test.py -p /dev/ttyACM0
 
 import numpy as np
+import argparse
+import time
+import serial
+import csv
 
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-import libraries.dobot_python.DobotDllType_Linux as dType 
+from utils.dobot import *
+from reskin_sensor import ReSkinProcess
+from utils.force_sensor import ForceSensor, _ForceSensorSetting
 
-#if platform.system() == 'Linux':
-#    from .libraries.dobot_python import DobotDllType_Linux as dType
-#elif platform.system() == 'Windows':
-#    from .libraries.dobot_python import DobotDllType_Windows as dType
 
-'''
-    Add description here
-'''
+def save_data(buff_dat, mag_num, file_name):
+    col_names = ['T', 'Bx', 'By', 'Bz']
+    fields = []
+    for i in range(mag_num):
+        for colname in col_names:
+            fields.append(colname + str(i))
 
-CON_STR = {
-    dType.DobotConnect.DobotConnect_NoError:  "DobotConnect_NoError",
-    dType.DobotConnect.DobotConnect_NotFound: "DobotConnect_NotFound",
-    dType.DobotConnect.DobotConnect_Occupied: "DobotConnect_Occupied"}
+    rows = []
+    for sample in buff_dat:
+        rows.append(sample.data)
 
-class Dobot:
-    def __init__(self, port, baud_rate=115200, home_dobot=True):
-        self.status = dType.DobotConnect.DobotConnect_NotFound
-        self._initialize(port, baud_rate, home_dobot)
-        self.mode = dType.PTPMode.PTPMOVLXYZMode
+    with open(file_name, 'w') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(fields)
+        csvwriter.writerows(rows)
 
-    def _initialize(self,port, baud_rate=115200, home_dobot=True, verbosity=1):
-        # Load Dll and get the CDLL object
-        self.api = dType.load()
-        # Connect Dobot
-        self.status = dType.ConnectDobot(self.api, port, baud_rate)[0]
-        print("Connect status:",CON_STR[self.status])
+def startSnakeProcess(robot, reskin_sensor, fs, r, depth, filename):
+    # Start buffering
+    if reskin_sensor.is_alive():
+        reskin_sensor.start_buffering()
+        buffer_start = time.time()
+    else:
+        return "Error: stream has not started"
 
-        if (self.status == dType.DobotConnect.DobotConnect_NoError):
+    # Start snake path
+    print("Snake pattern started for iteration.")
+    robot.startSnakePath(r,depth)
 
-            # Clean Command Queued
-            dType.SetQueuedCmdClear(self.api)
-            dType.SetQueuedCmdStopExec(self.api)
-            print('Cleared queue')
+    # Stop buffer
+    reskin_sensor.pause_buffering()
+    buffer_stop = time.time()
 
-            # DO NOT CHANGE HOME PARAMS, DOBOT GLITCHES OUT OTHERWISE
-            dType.SetHOMEParams(self.api, 220, 0, -6.5, 0, isQueued=1)
-            dType.SetPTPJointParams(self.api,200,200,200,200,200,200,200,200, isQueued=1)
-            dType.SetPTPCoordinateParams(self.api,200,200,200,200, isQueued=1)
-            dType.SetPTPJumpParams(self.api, 10, 200, isQueued=1)
-            lastIndex = dType.SetPTPCommonParams(self.api, 100, 100, isQueued=1)[0]
-            print('Queued PTP params')
-            # print(dType.GetHOMEParams(self.api))
-            # DO NOT DO THIS RIGHT NOW. HOMING COMMAND IS SOME WEIRD SHIT.
-            # The exact fix is available on one of the dobot forums where they 
-            # tell you an exaCT POSITION TO USE 
-            if home_dobot:
-                while True:
-                    check = input("Preparing to home dobot. Ensure no obstacles and press Y. Press N to skip.")
-                    if check == "Y" or check == "y":
-                        lastIndex = dType.SetHOMECmd(self.api, temp = 0, isQueued = 1)[0]
-                        print('Proceeding to home.')
-                        break
-                    elif check == 'N' or check == 'n':
-                        print('Skipped homing.')
-                        break
-                    else: 
-                        print('Invalid input.')
+    # Get buffered data
+    buffered_data = reskin_sensor.get_buffer()
+    ##############buffered_fsdata = fs.get_buffer()
 
-            # print('Queued homing command')
+    # Print buffered data summary
+    if buffered_data is not None:
+        print(
+            "Time elapsed: {}, Number of datapoints: {}".format(
+                buffer_stop - buffer_start, len(buffered_data)
+            )
+        )
 
-            dType.SetQueuedCmdStartExec(self.api)
-            print('Starting Execution')
-            # Wait for Executing Last Command 
-            while lastIndex > dType.GetQueuedCmdCurrentIndex(self.api)[0]:
-                # print(lastIndex, dType.GetQueuedCmdCurrentIndex(self.api)[0])
-                dType.dSleep(100)
-            print('Initialization complete!')
-            dType.SetQueuedCmdStopExec(self.api)
-            dType.SetQueuedCmdClear(self.api)
-        # return status, api
+    # FIGURE OUT SAVING FORCE SENSOR DATA
+    save_data(buffered_data, reskin_sensor.num_mags, filename)
+    print("Iteration saved.")
 
-    def setPTPCoordinateParams(self, velocity):
-        dType.SetPTPCoordinateParams(self.api,velocity,velocity,velocity,velocity, isQueued=0)
+if __name__ == "__main__":
+    # Parse terminal command for arguments
+    parser = argparse.ArgumentParser(
+        description="Test code to run a ReSkin streaming process in the background. Allows data to be collected without code blocking"
+    )
+    # fmt: off
+    parser.add_argument("-p", "--port", type=str, help="port to which the microcontroller is connected", required=True,)
+    parser.add_argument("-b", "--baudrate", type=str, help="baudrate at which the microcontroller is streaming data", default=115200,)
+    parser.add_argument("-n", "--num_mags", type=int, help="number of magnetometers on the sensor board", default=5,)
+    parser.add_argument("-tf", "--temp_filtered", action="store_true", help="flag to filter temperature from sensor output",)
+    # fmt: on
+    args = parser.parse_args()
 
-    def getPose(self):
-        return dType.GetPose(self.api)
-    
-    def setOrigin(self, origin=None):
-        
-        if origin is not None:
-            assert len(origin) == 3
-            # origin[-1] += 10.
-            origin_r = origin+[0.]
-            origin_r[2] += 10.
-            # print(origin_r)
-            cmd_id = dType.SetPTPCmd(self.api, self.mode, *origin_r)
-            print('Moving to 10 mm above specified origin', origin_r)
-            dType.SetQueuedCmdStartExec(self.api)
+    # Initializing force sensor
+    fs_settings = _ForceSensorSetting(device_name_prefix="Dev",
+                                      device_ids=[1],
+                                      sensor_names=["FT34108"],
+                                      calibration_folder="./utils",
+                                      reverse_scaling={1: ["Fz"], 2: ["Fz"]},
+                                      # key: device_id, parameter. E.g.:if x & z dimension of sensor 1 and z dimension of sensor 2 has to be flipped use {1: ["Fx", "Fz"], 2: ["Fz"]}
+                                      remote_control=False, ask_filename=False, write_Fx=True,
+                                      write_Fy=True, write_Fz=True, write_Tx=False, write_Ty=False,
+                                      write_Tz=False, write_trigger1=True, write_trigger2=False,
+                                      zip_data=True, convert_to_forces=True,
+                                      priority='normal')
+    force_sensor = ForceSensor(fs_settings)
 
-            while cmd_id > dType.GetQueuedCmdCurrentIndex(self.api):
-                dType.dSleep(100.)
+    # Create and start sensor stream
+    sensor_stream = ReSkinProcess(
+        num_mags=args.num_mags,
+        port=args.port,
+        baudrate=args.baudrate,
+        burst_mode=True,
+        device_id=1,
+        temp_filtered=args.temp_filtered,
+    )
+    sensor_stream.start()
+    #################force_sensor.start_recording()
 
-            dType.SetQueuedCmdStopExec(self.api)
-            dType.dSleep(100.)
-            self.origin = dType.GetPose(self.api)
-            # print(self.origin)
-            self.origin[2] -= 10.
-            print('Sensor reference successfully set.')
-            print(self.origin)
-            return self.origin
+    # Initialize Dobot
+    db = Dobot(port='/dev/ttyUSB0')
+    origin = [177.29611206054688, -95.56216430664062, -87.25672912597656]
 
-        else:
-            while True:
-                check = input("Move robot to bottom left screw on sensor (when viewed from the robot). Press Y when done. ")
-                if check == "Y" or check == "y":
-                    self.origin = dType.GetPose(self.api)
-                    print('Sensor reference successfully set.')
-                    print(self.origin)
-                    return self.origin
-                else: 
-                    print('Invalid input.')
+    # Start data collection
+    depths = np.arange(5,6,0.2)
+    for i,depth in enumerate(depths):
+        startSnakeProcess(db, sensor_stream, force_sensor, origin, depth, "res_test_"+str(i)+".csv")
+    print("Finished data collection")
 
-    def move(self,r,queue_cmd = False,delay=100.):
-        
-        assert len(r) == 3 or len(r) == 4
-        if len(r) == 3:
-            r += [0]
-        # print(self.origin[:3])
-        rel_r = np.array(self.origin[:4]) + np.array(r)
-        # print(rel_r)
-
-        if queue_cmd:
-            dType.SetQueuedCmdStopExec(self.api)
-        self.cmd_id = dType.SetPTPCmd(self.api, self.mode, *rel_r)  
-        
-        if not queue_cmd:
-            dType.SetQueuedCmdStartExec(self.api)
-
-            while self.cmd_id > dType.GetQueuedCmdCurrentIndex(self.api):
-                dType.dSleep(delay)
-
-            dType.SetQueuedCmdStopExec(self.api)
-            dType.dSleep(delay)
-        # print(dType.GetPose(self.api))
-        
-    def checkConnection(self):
-        return (self.status == dType.DobotConnect.DobotConnect_NoError)
-    
-    def startQueueExec(self):
-        dType.SetQueuedCmdStartExec(self.api)
-    
-    def stopQueueExec(self):
-        dType.SetQueuedCmdStopExec(self.api)
-    
-    def checkQueueComplete(self):
-        return self.cmd_id <= dType.GetQueuedCmdCurrentIndex(self.api)
-
-    def startSnakePath(self, r, zmove):
-        self.setOrigin(r)
-        x = 0;
-        y = 0;
-        z = 0;
-        xmove = 2;
-        ymove = 2;
-
-        for j in range(9):
-            for i in range(9):
-                if not ((x < 4 or x > 12) and (y < 4 or y > 12)):
-                    self.move([x, y, 0])
-                    self.move([x, y, -zmove])
-                    self.move([x, y, 0])
-                x += xmove
-            xmove *= -1
-            x += xmove
-            y += ymove
-
-    def upDown(self, r, zmove):
-        self.setOrigin(r)
-        n = input("How many indentations should the robot make?")
-        for i in range(int(n)):
-            self.move([8, 8, 0])
-            self.move([8, 8, -zmove])
-        self.move([8, 8, 0])
-
-##################### ORIGINS #####################
-# [177.29611206054688, -197.7755126953125, -87.25672912597656]
-# [177.29611206054688, -95.56216430664062, -87.25672912597656]
+    # Stop sensor stream
+    sensor_stream.pause_streaming()
+    #################force_sensor.pause_recording()
+    sensor_stream.join()
