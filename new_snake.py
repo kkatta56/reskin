@@ -29,7 +29,7 @@ def save_data(buff_dat, mag_num, file_name):
         csvwriter.writerow(fields)
         csvwriter.writerows(rows)
 
-def startSnakeProcess(robot, reskin_sensor, fs, r, depth, filename):
+def getSingleSkinData(robot, reskin_sensor, fs, r, depth, filename):
     # Start buffering
     if reskin_sensor.is_alive():
         reskin_sensor.start_buffering()
@@ -38,7 +38,6 @@ def startSnakeProcess(robot, reskin_sensor, fs, r, depth, filename):
         return "Error: stream has not started"
 
     # Start snake path
-    print("Snake pattern started for iteration.")
     robot.startSnakePath(r,depth)
 
     # Stop buffer
@@ -61,7 +60,34 @@ def startSnakeProcess(robot, reskin_sensor, fs, r, depth, filename):
     save_data(buffered_data, reskin_sensor.num_mags, filename)
     print("Iteration saved.")
 
+def startExperiment(port, pid, origin, depths, db, fs):
+    # Initialize reskin sensor
+    sensor_stream = ReSkinProcess(
+        num_mags=5,
+        port=port,
+        baudrate=115200,
+        burst_mode=True,
+        device_id=1,
+        temp_filtered=False,
+    )
+    print("Using port: " + port)
+    sensor_stream.start()
+
+    # Start data collection at various depths for  a particular reskin sensor
+    for i, d in enumerate(depths):
+        getSingleSkinData(db, sensor_stream, fs, origin, d,
+                          "port_" + str(pid + 1) + "_depth_" + str(i + 1) + ".csv")
+
+    # Stop sensor stream
+    sensor_stream.pause_streaming()
+    #################force_sensor.pause_recording()
+    sensor_stream.join()
+
+
 if __name__ == "__main__":
+
+    # Initialize Dobot
+    db = Dobot(port='/dev/ttyUSB0')
 
     # Initializing force sensor
     fs_settings = _ForceSensorSetting(device_name_prefix="Dev",
@@ -76,37 +102,15 @@ if __name__ == "__main__":
                                       zip_data=True, convert_to_forces=True,
                                       priority='normal')
     force_sensor = ForceSensor(fs_settings)
-
-    # Initialize Dobot
-    db = Dobot(port='/dev/ttyUSB0')
     #################force_sensor.start_recording()
 
-    # Create and start sensor streams
+    # Set ports, origins, and depths for experiment
     port_names = ['/dev/ttyACM0','/dev/ttyACM1','/dev/ttyACM2']
     origins = [[177.29611206054688, -197.7755126953125, -87.25672912597656],
                [177.29611206054688, -95.56216430664062, -87.25672912597656],
                [177.29611206054688, 77.446216430664062, -87.25672912597656]]
+    depths = [5,5.5]
 
     # Iterate over each port/origin
-    for i,port in enumerate(port_names):
-        sensor_stream = ReSkinProcess(
-            num_mags=5,
-            port=port,
-            baudrate=115200,
-            burst_mode=True,
-            device_id=1,
-            temp_filtered=False,
-        )
-        print("Using port: "+port)
-        sensor_stream.start()
-
-        # Start data collection
-        depths = [5, 5.5, 6]
-        for j,depth in enumerate(depths):
-            startSnakeProcess(db, sensor_stream, force_sensor, origins[i], depth, "port_"+str(i+1)+"_depth_"+str(j+1)+".csv")
-        print("Finished data collection")
-
-        # Stop sensor stream
-        sensor_stream.pause_streaming()
-        #################force_sensor.pause_recording()
-        sensor_stream.join()
+    for pid,port in enumerate(port_names):
+        startExperiment(port, pid, origins[pid], depths, db, force_sensor)
