@@ -29,7 +29,7 @@ def save_data(buff_dat, mag_num, file_name):
         csvwriter.writerow(fields)
         csvwriter.writerows(rows)
 
-def getSingleSkinData(robot, reskin_sensor, fs, r, depth, filename):
+def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
     # Start buffering
     if reskin_sensor.is_alive():
         reskin_sensor.start_buffering()
@@ -60,7 +60,7 @@ def getSingleSkinData(robot, reskin_sensor, fs, r, depth, filename):
     save_data(buffered_data, reskin_sensor.num_mags, filename)
     print("Iteration saved.")
 
-def startExperiment(port, pid, origin, depths, db, fs):
+def getSingleSkinData(port, pid, origin, depths, db, fs):
     # Initialize reskin sensor
     sensor_stream = ReSkinProcess(
         num_mags=5,
@@ -75,7 +75,7 @@ def startExperiment(port, pid, origin, depths, db, fs):
 
     # Start data collection at various depths for  a particular reskin sensor
     for i, d in enumerate(depths):
-        getSingleSkinData(db, sensor_stream, fs, origin, d,
+        getSingleIterationData(db, sensor_stream, fs, origin, d,
                           "port_" + str(pid + 1) + "_depth_" + str(i + 1) + ".csv")
 
     # Stop sensor stream
@@ -113,4 +113,4 @@ if __name__ == "__main__":
 
     # Iterate over each port/origin
     for pid,port in enumerate(port_names):
-        startExperiment(port, pid, origins[pid], depths, db, force_sensor)
+        getSingleSkinData(port, pid, origins[pid], depths, db, force_sensor)
