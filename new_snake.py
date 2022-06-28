@@ -19,10 +19,13 @@ def save_data(buff_dat, mag_num, file_name):
     for i in range(mag_num):
         for colname in col_names:
             fields.append(colname + str(i))
+    fields.append('indent_ID')
 
     rows = []
-    for sample in buff_dat:
-        rows.append(sample.data)
+    for indent_id, sample in enumerate(buff_dat):
+        for dat in sample:
+            dat.data.append(indent_id)
+            rows.append(dat.data)
 
     with open(file_name, 'w') as csvfile:
         csvwriter = csv.writer(csvfile)
@@ -31,30 +34,37 @@ def save_data(buff_dat, mag_num, file_name):
 
 def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
     # Start buffering
-    if reskin_sensor.is_alive():
-        reskin_sensor.start_buffering()
-        buffer_start = time.time()
-    else:
+    if reskin_sensor.is_alive() == False:
         return "Error: stream has not started"
 
     # Start snake path
-    robot.startSnakePath(r,depth)
+    buffer_start = time.time()
+    robot.setOrigin(r)
+    x = 0;
+    y = 0;
+    z = 0;
+    xmove = 2;
+    ymove = 2;
+    buffered_data = []
 
-    # Stop buffer
-    reskin_sensor.pause_buffering()
+    for j in range(9):
+        for i in range(9):
+            if not ((x < 4 or x > 12) and (y < 4 or y > 12)):
+                reskin_sensor.start_buffering(overwrite=True)
+                robot.move([x, y, 0])
+                robot.move([x, y, -depth])
+                robot.move([x, y, 0])
+                reskin_sensor.pause_buffering()
+                buffered_data.append(reskin_sensor.get_buffer())
+            x += xmove
+        xmove *= -1
+        x += xmove
+        y += ymove
+
     buffer_stop = time.time()
 
-    # Get buffered data
-    buffered_data = reskin_sensor.get_buffer()
+    # Get force sensor data
     ##############buffered_fsdata = fs.get_buffer()
-
-    # Print buffered data summary
-    if buffered_data is not None:
-        print(
-            "Time elapsed: {}, Number of datapoints: {}".format(
-                buffer_stop - buffer_start, len(buffered_data)
-            )
-        )
 
     # FIGURE OUT SAVING FORCE SENSOR DATA
     save_data(buffered_data, reskin_sensor.num_mags, filename)
@@ -76,7 +86,7 @@ def getSingleSkinData(port, pid, origin, depths, db, fs):
     # Start data collection at various depths for  a particular reskin sensor
     for i, d in enumerate(depths):
         getSingleIterationData(db, sensor_stream, fs, origin, d,
-                          "port_" + str(pid + 1) + "_depth_" + str(i + 1) + ".csv")
+                          "raw/port_" + str(pid + 1) + "_depth_" + str(i + 1) + ".csv")
 
     # Stop sensor stream
     sensor_stream.pause_streaming()
@@ -109,7 +119,7 @@ if __name__ == "__main__":
     origins = [[177.29611206054688, -197.7755126953125, -87.25672912597656],
                [177.29611206054688, -95.56216430664062, -87.25672912597656],
                [177.29611206054688, 77.446216430664062, -87.25672912597656]]
-    depths = [5,5.5]
+    depths = [8,10]
 
     # Iterate over each port/origin
     for pid,port in enumerate(port_names):
