@@ -28,8 +28,10 @@ def oneBaseline(dat):
 # Input number of depths/sensors
 depths = 2
 ports = 3
+
+# Run process over all raw data files
 for i in range(1,ports+1):
     for j in range(1,depths+1):
         d, col_names = openFile('raw/port_'+str(i)+'_depth_'+str(j)+'.csv')
         proc_df = pd.DataFrame(oneBaseline(d), columns=col_names)
-        proc_df.to_csv('processed/oneBL/port_' + str(i) + '_depth_' + str(j) + '.csv', sep='\t', encoding='utf-8')
+        proc_df.to_csv('processed/oneBL/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8')
