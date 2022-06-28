@@ -15,9 +15,22 @@ def openFile(filename):
                 data.append(desired_array)
     return data, column_names
 
-d, col_names = openFile('touch_1.csv')
-proc_df = pd.DataFrame(d, columns=col_names)
-proc_df.plot(y="Bx0", kind="line")
-plt.show()
-print(proc_df['Bz0'])
+def processBaselines(df):
+    baselines = []
+    for indent_ID in range(int(proc_df['indent_ID'].max())+1):
+        sample_vals = df.loc[df['indent_ID'] == indent_ID][1:11]
+        bl = sample_vals.mean()
+        baselines.append(bl)
 
+    #for row in df:
+
+
+    return baselines
+
+
+d, col_names = openFile('raw/port_1_depth_1.csv')
+proc_df = pd.DataFrame(d, columns=col_names)
+bls = processBaselines(proc_df)
+#proc_df.plot(y="Bx0", kind="line")
+#plt.show()
+print(proc_df[1])
