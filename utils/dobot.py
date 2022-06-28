@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 from datetime import datetime
 import platform
 
@@ -154,25 +155,6 @@ class Dobot:
     
     def checkQueueComplete(self):
         return self.cmd_id <= dType.GetQueuedCmdCurrentIndex(self.api)
-
-    def startSnakePath(self, r, zmove):
-        self.setOrigin(r)
-        x = 0;
-        y = 0;
-        z = 0;
-        xmove = 2;
-        ymove = 2;
-
-        for j in range(9):
-            for i in range(9):
-                if not ((x < 4 or x > 12) and (y < 4 or y > 12)):
-                    self.move([x, y, 0])
-                    self.move([x, y, -zmove])
-                    self.move([x, y, 0])
-                x += xmove
-            xmove *= -1
-            x += xmove
-            y += ymove
 
     def upDown(self, r, zmove):
         self.setOrigin(r)
