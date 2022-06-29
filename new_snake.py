@@ -13,18 +13,21 @@ from reskin_sensor import ReSkinProcess
 from utils.force_sensor import ForceSensor, _ForceSensorSetting
 
 
-def save_data(buff_dat, mag_num, file_name):
+def save_data(buff_dat, xs, ys, depth, mag_num, file_name):
     col_names = ['T', 'Bx', 'By', 'Bz']
     fields = []
     for i in range(mag_num):
         for colname in col_names:
             fields.append(colname + str(i))
-    fields.append('indent_ID')
+    fields += ['indent_ID', 'X_location', 'Y_location', 'Z_location']
 
     rows = []
     for indent_id, sample in enumerate(buff_dat):
         for dat in sample:
             dat.data.append(indent_id)
+            dat.data.append(xs[indent_id])
+            dat.data.append(ys[indent_id])
+            dat.data.append(depth)
             rows.append(dat.data)
 
     with open(file_name, 'w') as csvfile:
@@ -46,10 +49,14 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
     xmove = 2;
     ymove = 2;
     buffered_data = []
+    x_loc = []
+    y_loc = []
 
     for j in range(9):
         for i in range(9):
             if not ((x < 4 or x > 12) and (y < 4 or y > 12)):
+                x_loc.append(x)
+                y_loc.append(y)
                 reskin_sensor.start_buffering(overwrite=True)
                 robot.move([x, y, 0])
                 robot.move([x, y, -depth])
@@ -61,13 +68,11 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
         x += xmove
         y += ymove
 
-    buffer_stop = time.time()
-
     # Get force sensor data
     ##############buffered_fsdata = fs.get_buffer()
 
     # FIGURE OUT SAVING FORCE SENSOR DATA
-    save_data(buffered_data, reskin_sensor.num_mags, filename)
+    save_data(buffered_data, x_loc, y_loc, depth, reskin_sensor.num_mags, filename)
     print("Iteration saved.")
 
 def getSingleSkinData(port, pid, origin, depths, db, fs):
