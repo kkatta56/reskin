@@ -15,22 +15,30 @@ def openFile(filename):
                 data.append(desired_array)
     return data, column_names
 
-def processBaselines(df):
+def findBaselines(df):
     baselines = []
-    for indent_ID in range(int(proc_df['indent_ID'].max())+1):
+    for indent_ID in range(int(df['indent_ID'].max())+1):
         sample_vals = df.loc[df['indent_ID'] == indent_ID][1:11]
         bl = sample_vals.mean()
         baselines.append(bl)
-
-    #for row in df:
-
-
     return baselines
 
+def processData(df,bls):
+    for i in range(len(df)):
+        ind_id = int(df.loc[i].indent_ID)
+        df.loc[i] -= bls[ind_id]
+    return df
 
+# Open CSV files and create dataframe
 d, col_names = openFile('raw/port_1_depth_1.csv')
-proc_df = pd.DataFrame(d, columns=col_names)
-bls = processBaselines(proc_df)
-#proc_df.plot(y="Bx0", kind="line")
-#plt.show()
-print(proc_df[1])
+df = pd.DataFrame(d, columns=col_names)
+
+# Find baselines
+bls = findBaselines(df)
+
+# Process data
+proc_df = processData(df,bls)
+
+# Plot data
+proc_df.plot(y="Bz0", kind="line")
+plt.show()
