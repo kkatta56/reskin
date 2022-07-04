@@ -13,7 +13,7 @@ from reskin_sensor import ReSkinProcess
 from utils.force_sensor import ForceSensor, _ForceSensorSetting
 
 
-def save_data(buff_dat, xs, ys, depth, mag_num, file_name):
+def save_data_csv(buff_dat, xs, ys, depth, mag_num, file_name):
     col_names = ['T', 'Bx', 'By', 'Bz']
     fields = []
     for i in range(mag_num):
@@ -34,6 +34,19 @@ def save_data(buff_dat, xs, ys, depth, mag_num, file_name):
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(fields)
         csvwriter.writerows(rows)
+
+def save_data_numpy(buff_dat, xs, ys, depth, file_name):
+    a = []
+    for indent_id, indent_data in enumerate(buff_dat):
+        b = []
+        for data_point in indent_data:
+            data_point.data.append(xs[indent_id])
+            data_point.data.append(ys[indent_id])
+            data_point.data.append(depth)
+            b.append(data_point.data)
+        a.append(b)
+    arr = np.array(a, dtype=object)
+    np.save(file_name, arr)
 
 def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
     # Start buffering
@@ -72,7 +85,8 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
     ##############buffered_fsdata = fs.get_buffer()
 
     # FIGURE OUT SAVING FORCE SENSOR DATA
-    save_data(buffered_data, x_loc, y_loc, depth, reskin_sensor.num_mags, filename)
+    save_data_csv(buffered_data, x_loc, y_loc, depth, reskin_sensor.num_mags, filename + ".csv")
+    save_data_numpy(buffered_data, x_loc, y_loc, depth, filename + ".npy")
     print("Iteration saved.")
 
 def getSingleSkinData(port, pid, origin, depths, db, fs):
@@ -91,7 +105,7 @@ def getSingleSkinData(port, pid, origin, depths, db, fs):
     # Start data collection at various depths for  a particular reskin sensor
     for i, d in enumerate(depths):
         getSingleIterationData(db, sensor_stream, fs, origin, d,
-                          "raw/port_" + str(pid + 1) + "_depth_" + str(i + 1) + ".csv")
+                          "raw/port_" + str(pid + 1) + "_depth_" + str(i + 1))
 
     # Stop sensor stream
     sensor_stream.pause_streaming()
