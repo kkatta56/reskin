@@ -24,7 +24,7 @@ def findBaselines(df):
         bl = sample_vals.mean()
         # make the baseline values for indent_ID, x_loc, y_loc, z_loc = 0
         # in order to preserve those data points
-        bl[21:24] = [0,0,0]
+        bl[20:24] = [0,0,0,0]
         baselines.append(bl)
     return baselines
 
@@ -35,7 +35,7 @@ def findBaselines_numpy(arr):
         bl = sample_vals.mean()
         # make the baseline values for indent_ID, x_loc, y_loc, z_loc = 0
         # in order to preserve those data points
-        bl[21:24] = [0,0,0]
+        bl[20:24] = [0,0,0,0]
         baselines.append(bl)
     return baselines
 
@@ -45,6 +45,12 @@ def processData(df,bls):
         ind_id = int(df.loc[i].indent_ID)
         df.loc[i] -= bls[ind_id]
     return df
+
+def sample_process(df,bls):
+    sample_df = []
+    for indent_ID in range(int(df['indent_ID'].max()) + 1):
+        sample_df.append(df.loc[df['indent_ID'] == indent_ID][300:350])
+    return pd.concat(sample_df)
 
 def processData_numpy(arr,bls):
     for i in range(len(arr)):
@@ -81,9 +87,11 @@ for i in range(1,ports+1):
         # Process data
         proc_df = processData(df, bls)
         proc_np = processData_numpy(np_data, bls_np)
+        samples_df = sample_process(df, bls)
 
         # Save data
         proc_df.to_csv('processed/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index = False)
+        samples_df.to_csv('samples/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index = False)
         np.save('processed/port_' + str(i) + '_depth_' + str(j) + '.npy', proc_np)
 
         print('Processed raw/port_'+str(i)+'_depth_'+str(j))
