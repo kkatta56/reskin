@@ -54,7 +54,7 @@ class NeuralNetwork(nn.Module):
         super(NeuralNetwork, self).__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(20*550, 512),
+            nn.Linear(20, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
             nn.ReLU(),
@@ -77,22 +77,23 @@ output1 = pd.merge(data1, data2,
                    on='T0',
                    how='inner')
 
-res_dat_train = ResDataSet(pd.read_csv('processed/port_1_depth_1.csv').to_numpy())
-res_dat_test = ResDataSet(pd.read_csv('processed/port_3_depth_1.csv').to_numpy())
+#res_dat_train = ResDataSet(output1.to_numpy())
+res_dat_train = ResDataSet(pd.read_csv('samples/port_1_depth_1.csv').to_numpy())
+res_dat_test = ResDataSet(pd.read_csv('samples/port_3_depth_1.csv').to_numpy())
 upload_train = ResDataSet_np(np.load('processed/port_1_depth_1.npy', allow_pickle=True))
 upload_test = ResDataSet_np(np.load('processed/port_3_depth_1.npy', allow_pickle=True))
 
 # Initialize data loaders
-batch_size = 30
-train_dataloader = DataLoader(upload_train, batch_size=batch_size, shuffle=True)
-test_dataloader = DataLoader(upload_test, batch_size=batch_size, shuffle=True)
+batch_size = 50
+train_dataloader = DataLoader(res_dat_train, batch_size=batch_size, shuffle=True)
+test_dataloader = DataLoader(res_dat_test, batch_size=batch_size, shuffle=True)
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 for X, y in test_dataloader:
     print(f"Shape of X [N, C, H, W]: {X.shape}")
     print(f"Shape of y: {y.shape} {y.dtype}")
     break
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
 
 model = NeuralNetwork().to(device)
 print(model)
