@@ -22,13 +22,13 @@ def save_data_csv(buff_dat, xs, ys, depth, mag_num, file_name):
     fields += ['indent_ID', 'X_location', 'Y_location', 'Z_location']
 
     rows = []
-    for indent_id, sample in enumerate(buff_dat):
-        for dat in sample:
-            dat.data.append(indent_id)
-            dat.data.append(xs[indent_id])
-            dat.data.append(ys[indent_id])
-            dat.data.append(depth)
-            rows.append(dat.data)
+    for indent_id, indent_data in enumerate(buff_dat):
+        for i in range(len(indent_data)-550, len(indent_data)):
+            indent_data[i].data.append(indent_id)
+            indent_data[i].data.append(xs[indent_id])
+            indent_data[i].data.append(ys[indent_id])
+            indent_data[i].data.append(depth)
+            rows.append(indent_data[i].data)
 
     with open(file_name, 'w') as csvfile:
         csvwriter = csv.writer(csvfile)
@@ -39,13 +39,13 @@ def save_data_numpy(buff_dat, xs, ys, depth, file_name):
     a = []
     for indent_id, indent_data in enumerate(buff_dat):
         b = []
-        for data_point in indent_data:
-            data_point.data.append(xs[indent_id])
-            data_point.data.append(ys[indent_id])
-            data_point.data.append(depth)
-            b.append(data_point.data)
+        for i in range(len(indent_data)-550, len(indent_data)):
+            indent_data[i].data.append(xs[indent_id])
+            indent_data[i].data.append(ys[indent_id])
+            indent_data[i].data.append(depth)
+            b.append(indent_data[i].data)
         a.append(b)
-    arr = np.array(a, dtype=object)
+    arr = np.array(a)
     np.save(file_name, arr)
 
 def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
