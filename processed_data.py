@@ -24,7 +24,7 @@ def findBaselines(df):
         bl = sample_vals.mean()
         # make the baseline values for indent_ID, x_loc, y_loc, z_loc = 0
         # in order to preserve those data points
-        bl[20:24] = [0,0,0,0]
+        bl[21:24] = [0,0,0]
         baselines.append(bl)
     return baselines
 
@@ -35,13 +35,13 @@ def findBaselines_numpy(arr):
         bl = sample_vals.mean()
         # make the baseline values for indent_ID, x_loc, y_loc, z_loc = 0
         # in order to preserve those data points
-        bl[20:24] = [0,0,0,0]
+        bl[21:24] = [0,0,0]
         baselines.append(bl)
     return baselines
 
 # Process the data for each of the baselines
-def processData(arr,bls):
-    for indent in arr:
+def processData(df,bls):
+    for i in range(len(df)):
         ind_id = int(df.loc[i].indent_ID)
         df.loc[i] -= bls[ind_id]
     return df
