@@ -20,18 +20,7 @@ def openFile(filename):
 def findBaselines(df):
     baselines = []
     for indent_ID in range(int(df['indent_ID'].max())+1):
-        sample_vals = df.loc[df['indent_ID'] == indent_ID][1:11]
-        bl = sample_vals.mean()
-        # make the baseline values for indent_ID, x_loc, y_loc, z_loc = 0
-        # in order to preserve those data points
-        bl[20:24] = [0,0,0,0]
-        baselines.append(bl)
-    return baselines
-
-def findBaselines_numpy(arr):
-    baselines = []
-    for indent in arr:
-        sample_vals = pd.DataFrame(indent[1:11])
+        sample_vals = df.loc[df['indent_ID'] == indent_ID][0:50]
         bl = sample_vals.mean()
         # make the baseline values for indent_ID, x_loc, y_loc, z_loc = 0
         # in order to preserve those data points
@@ -41,31 +30,31 @@ def findBaselines_numpy(arr):
 
 # Process the data for each of the baselines
 def processData(df,bls):
+    #subtract from baseline
     for i in range(len(df)):
         ind_id = int(df.loc[i].indent_ID)
         df.loc[i] -= bls[ind_id]
-    return df
 
-def sample_process(df,bls):
+    final_df = []
+    for indent_ID in range(int(df['indent_ID'].max()) + 1):
+        final_df.append(df.loc[df['indent_ID'] == indent_ID][-1100:])
+
+    return pd.concat(final_df)
+
+def sample_process(df):
     sample_df = []
     for indent_ID in range(int(df['indent_ID'].max()) + 1):
-        sample_df.append(df.loc[df['indent_ID'] == indent_ID][300:350])
+        sample_df.append(df.loc[df['indent_ID'] == indent_ID][400:800])
     return pd.concat(sample_df)
 
-def processData_numpy(arr,bls):
-    for i in range(len(arr)):
-        for j in range(len(arr[i])):
-            arr[i][j] -= bls[i]
-    return arr
-
-# Take first line as baseline
-def oneBaseline(dat):
-    bl = dat[0]
-    proc_dat = []
-    for row in dat:
-        proc_arr = [num-bl[i] for i,num in enumerate(row)]
-        proc_dat.append(proc_arr)
-    return proc_dat
+def normalize(df):
+    df.iloc[:, 0:20] = (df.iloc[:, 0:20] - df.iloc[:, 0:20].min()) / (df.iloc[:, 0:20].max() - df.iloc[:, 0:20].min())
+    df.drop('T0', axis=1, inplace=True)
+    df.drop('T1', axis=1, inplace=True)
+    df.drop('T2', axis=1, inplace=True)
+    df.drop('T3', axis=1, inplace=True)
+    df.drop('T4', axis=1, inplace=True)
+    return df
 
 # Input number of depths/sensors
 depths = 2
@@ -76,22 +65,21 @@ for i in range(1,ports+1):
     for j in range(1,depths+1):
 
         # Open .csv/.npy files and create dataframe
-        d, col_names = openFile('raw/port_'+str(i)+'_depth_'+str(j)+'.csv')
+        d, col_names = openFile('datasets/raw/port_'+str(i)+'_depth_'+str(j)+'.csv')
         df = pd.DataFrame(d, columns=col_names)
-        np_data = np.load('raw/port_'+str(i)+'_depth_'+str(j)+'.npy', allow_pickle=True)
 
         # Find baselines
         bls = findBaselines(df)
-        bls_np = findBaselines_numpy(np_data)
 
         # Process data
         proc_df = processData(df, bls)
-        proc_np = processData_numpy(np_data, bls_np)
-        samples_df = sample_process(df, bls)
+        samples_df = sample_process(proc_df)
+        norm_df = normalize(samples_df)
 
         # Save data
-        proc_df.to_csv('processed/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index = False)
-        samples_df.to_csv('samples/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index = False)
-        np.save('processed/port_' + str(i) + '_depth_' + str(j) + '.npy', proc_np)
+        proc_df.to_csv('datasets/processed/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index = False)
+        samples_df.to_csv('datasets/samples/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index = False)
+        norm_df.to_csv('datasets/normalized/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8',
+                          index=False)
 
         print('Processed raw/port_'+str(i)+'_depth_'+str(j))
