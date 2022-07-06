@@ -23,7 +23,8 @@ def save_data_csv(buff_dat, xs, ys, depth, mag_num, file_name):
 
     rows = []
     for indent_id, indent_data in enumerate(buff_dat):
-        for i in range(len(indent_data)-550, len(indent_data)):
+        #for i in range(len(indent_data)-550, len(indent_data)):
+        for i in range(len(indent_data)):
             indent_data[i].data.append(indent_id)
             indent_data[i].data.append(xs[indent_id])
             indent_data[i].data.append(ys[indent_id])
@@ -34,19 +35,6 @@ def save_data_csv(buff_dat, xs, ys, depth, mag_num, file_name):
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(fields)
         csvwriter.writerows(rows)
-
-def save_data_numpy(buff_dat, xs, ys, depth, file_name):
-    a = []
-    for indent_id, indent_data in enumerate(buff_dat):
-        b = []
-        for i in range(len(indent_data)-550, len(indent_data)):
-            indent_data[i].data.append(xs[indent_id])
-            indent_data[i].data.append(ys[indent_id])
-            indent_data[i].data.append(depth)
-            b.append(indent_data[i].data)
-        a.append(b)
-    arr = np.array(a)
-    np.save(file_name, arr)
 
 def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
     # Start buffering
@@ -73,6 +61,7 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
                 reskin_sensor.start_buffering(overwrite=True)
                 robot.move([x, y, 0])
                 robot.move([x, y, -depth])
+                time.sleep(1.5)
                 robot.move([x, y, 0])
                 reskin_sensor.pause_buffering()
                 buffered_data.append(reskin_sensor.get_buffer())
@@ -86,7 +75,6 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, filename):
 
     # FIGURE OUT SAVING FORCE SENSOR DATA
     save_data_csv(buffered_data, x_loc, y_loc, depth, reskin_sensor.num_mags, filename + ".csv")
-    save_data_numpy(buffered_data, x_loc, y_loc, depth, filename + ".npy")
     print("Iteration saved.")
 
 def getSingleSkinData(port, pid, origin, depths, db, fs):
@@ -105,7 +93,7 @@ def getSingleSkinData(port, pid, origin, depths, db, fs):
     # Start data collection at various depths for  a particular reskin sensor
     for i, d in enumerate(depths):
         getSingleIterationData(db, sensor_stream, fs, origin, d,
-                          "raw/port_" + str(pid + 1) + "_depth_" + str(i + 1))
+                          "datasets/raw/port_" + str(pid + 1) + "_depth_" + str(i + 1))
 
     # Stop sensor stream
     sensor_stream.pause_streaming()
