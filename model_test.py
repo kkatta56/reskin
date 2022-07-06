@@ -17,29 +17,8 @@ from torchvision.transforms import ToTensor
 
 class ResDataSet(Dataset):
     def __init__(self, arr):
-        self.b_vals = arr[:, 0:20]
-        self.labels = arr[:, 20]
-
-    def __len__(self):
-        return len(self.labels)
-
-    def __getitem__(self, idx):
-        b_vals = self.b_vals[idx]
-        labels = self.labels[idx]
-        return b_vals, labels
-
-class ResDataSet_np(Dataset):
-    def __init__(self, arr):
-        self.b_vals = []
-        self.labels = []
-        for indent_id, indent in enumerate(arr):
-            a = []
-            for data_point in indent:
-                a.append(data_point[0:20])
-            self.b_vals.append(a)
-            self.labels.append(indent_id)
-        self.b_vals = np.array(self.b_vals)
-        self.labels = np.array(self.labels)
+        self.b_vals = arr[:, 0:15]
+        self.labels = arr[:, 15]
 
     def __len__(self):
         return len(self.labels)
@@ -54,7 +33,7 @@ class NeuralNetwork(nn.Module):
         super(NeuralNetwork, self).__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(20, 512),
+            nn.Linear(15, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
             nn.ReLU(),
@@ -68,20 +47,8 @@ class NeuralNetwork(nn.Module):
 
 
 # Upload CSV data as ResDataSet object
-# reading two csv files
-data1 = pd.read_csv('processed/port_1_depth_1.csv')
-data2 = pd.read_csv('processed/port_2_depth_1.csv')
-
-# using merge function by setting how='inner'
-output1 = pd.merge(data1, data2,
-                   on='T0',
-                   how='inner')
-
-#res_dat_train = ResDataSet(output1.to_numpy())
-res_dat_train = ResDataSet(pd.read_csv('samples/port_1_depth_1.csv').to_numpy())
-res_dat_test = ResDataSet(pd.read_csv('samples/port_3_depth_1.csv').to_numpy())
-upload_train = ResDataSet_np(np.load('processed/port_1_depth_1.npy', allow_pickle=True))
-upload_test = ResDataSet_np(np.load('processed/port_3_depth_1.npy', allow_pickle=True))
+res_dat_train = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
+res_dat_test = ResDataSet(pd.read_csv('datasets/normalized/port_3_depth_1.csv').to_numpy())
 
 # Initialize data loaders
 batch_size = 50
@@ -90,23 +57,17 @@ test_dataloader = DataLoader(res_dat_test, batch_size=batch_size, shuffle=True)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-for X, y in test_dataloader:
-    print(f"Shape of X [N, C, H, W]: {X.shape}")
-    print(f"Shape of y: {y.shape} {y.dtype}")
-    break
-
 model = NeuralNetwork().to(device)
 print(model)
 
+for X, y in test_dataloader:
+    print(X[0])
+    print(y[0])
+    X, y = X.to(device), y.to(device)
+    break
+
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
-
-#for batch, (X, y) in enumerate(train_dataloader):
-#    y = y.type(torch.LongTensor)
-#    X, y = X.to(device), y.to(device)
-#    pred = model(X.float())
-#    loss = loss_fn(pred, y)
-#    print(loss)
 
 def train(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
@@ -151,5 +112,5 @@ for t in range(epochs):
     test(test_dataloader, model, loss_fn)
 print("Done!")
 
-#torch.save(model.state_dict(), "model.pth")
+torch.save(model.state_dict(), "model.pth")
 print("Saved PyTorch Model State to model.pth")
