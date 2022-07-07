@@ -1,116 +1,107 @@
-# -*- coding: utf-8 -*-
-import os
 import numpy as np
-import math
 import pandas as pd
-import matplotlib.pyplot as plt
-import csv
 import torch
-from torch import nn
+import torch.nn as nn
+import torchvision
+import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
-from torchvision import datasets, transforms
-from torchvision.transforms import ToTensor
 
-#######################################################
-#               Define Reskin Data Class
-#######################################################
 
 class ResDataSet(Dataset):
     def __init__(self, arr):
         self.b_vals = arr[:, 0:15]
-        self.labels = arr[:, 15]
+        self.indent_num = arr[:, 15]
 
     def __len__(self):
-        return len(self.labels)
+        return len(self.indent_num)
 
     def __getitem__(self, idx):
         b_vals = self.b_vals[idx]
-        labels = self.labels[idx]
-        return b_vals, labels
+        indent_num = self.indent_num[idx]
+        return b_vals, indent_num
 
-class NeuralNetwork(nn.Module):
-    def __init__(self):
-        super(NeuralNetwork, self).__init__()
-        self.flatten = nn.Flatten()
-        self.linear_relu_stack = nn.Sequential(
-            nn.Linear(15, 512),
-            nn.ReLU(),
-            nn.Linear(512, 512),
-            nn.ReLU(),
-            nn.Linear(512, 65),
-        )
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# Hyper-parameters
+input_size = 15
+hidden_size = 500
+num_classes = 65
+num_epochs = 5
+batch_size = 100
+learning_rate = 0.001
+
+# dataset
+train_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_3_depth_1.csv').to_numpy())
+test_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
+
+# Data loader
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                           batch_size=batch_size,
+                                           shuffle=True)
+
+test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+                                          batch_size=batch_size,
+                                          shuffle=False)
+
+# Fully connected neural network with one hidden layer
+class NeuralNet(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes):
+        super(NeuralNet, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
-        x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
+        out = self.fc1(x)
+        out = self.relu(out)
+        out = self.fc2(out)
+        return out
 
 
-# Upload CSV data as ResDataSet object
-res_dat_train = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
-res_dat_test = ResDataSet(pd.read_csv('datasets/normalized/port_3_depth_1.csv').to_numpy())
+model = NeuralNet(input_size, hidden_size, num_classes).to(device)
 
-# Initialize data loaders
-batch_size = 50
-train_dataloader = DataLoader(res_dat_train, batch_size=batch_size, shuffle=True)
-test_dataloader = DataLoader(res_dat_test, batch_size=batch_size, shuffle=True)
+# Loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# Train the model
+total_step = len(train_loader)
+for epoch in range(num_epochs):
+    for i, (b_vals, indent_num) in enumerate(train_loader):
+        # Move tensors to the configured device
+        b_vals = b_vals.to(device)
+        indent_num = indent_num.type(torch.LongTensor).to(device)
 
-model = NeuralNetwork().to(device)
-print(model)
+        # Forward pass
+        outputs = model(b_vals.float())
+        loss = criterion(outputs, indent_num)
 
-for X, y in test_dataloader:
-    print(X[0])
-    print(y[0])
-    X, y = X.to(device), y.to(device)
-    break
-
-loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
-
-def train(dataloader, model, loss_fn, optimizer):
-    size = len(dataloader.dataset)
-    model.train()
-    for batch, (X,y) in enumerate(dataloader):
-        y = y.type(torch.LongTensor)
-        X, y = X.to(device), y.to(device)
-
-        # Compute prediction error
-        pred = model(X.float())
-        loss = loss_fn(pred, y)
-
-        # Backpropagation
+        # Backward and optimize
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        if batch % 100 == 0:
-            loss, current = loss.item(), batch * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+        if (i + 1) % 100 == 0:
+            print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
+                  .format(epoch + 1, num_epochs, i + 1, total_step, loss.item()))
 
-def test(dataloader, model, loss_fn):
-    size = len(dataloader.dataset)
-    num_batches = len(dataloader)
-    model.eval()
-    test_loss, correct = 0, 0
-    with torch.no_grad():
-        for X, y in dataloader:
-            y = y.type(torch.LongTensor)
-            X, y = X.to(device), y.to(device)
-            pred = model(X.float())
-            test_loss += loss_fn(pred, y).item()
-            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-    test_loss /= num_batches
-    correct /= size
-    print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+# Test the model
+# In test phase, we don't need to compute gradients (for memory efficiency)
+with torch.no_grad():
+    correct = 0
+    total = 0
+    for b_vals, indent_num in test_loader:
+        b_vals = b_vals.to(device)
+        indent_num = indent_num.type(torch.LongTensor).to(device)
+        outputs = model(b_vals.float())
+        _, predicted = torch.max(outputs.data, 1)
+        total += b_vals.size(0)
+        correct += (predicted == indent_num).sum().item()
 
-epochs = 5
-for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
-    train(train_dataloader, model, loss_fn, optimizer)
-    test(test_dataloader, model, loss_fn)
-print("Done!")
+    print('Accuracy of the network on the test values: {} %'.format(100 * correct / total))
 
-torch.save(model.state_dict(), "model.pth")
-print("Saved PyTorch Model State to model.pth")
+# Save the model checkpoint
+torch.save(model.state_dict(), 'model.ckpt')
+
+https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-create-a-neural-network-for-regression-with-pytorch.md
