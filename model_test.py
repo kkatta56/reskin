@@ -1,107 +1,115 @@
-import numpy as np
-import pandas as pd
 import torch
 import torch.nn as nn
-import torchvision
-import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
-
+import numpy as np
+import pandas as pd
 
 class ResDataSet(Dataset):
     def __init__(self, arr):
         self.b_vals = arr[:, 0:15]
-        self.indent_num = arr[:, 15]
+        self.x_loc = arr[:, 16]
+        #self.y_loc = arr[:, 17]
 
     def __len__(self):
-        return len(self.indent_num)
+        return len(self.x_loc)
 
     def __getitem__(self, idx):
         b_vals = self.b_vals[idx]
-        indent_num = self.indent_num[idx]
-        return b_vals, indent_num
+        x_loc = self.x_loc[idx]
+        #y_loc = self.y_loc[idx]
+        return b_vals, x_loc
 
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-# Hyper-parameters
-input_size = 15
-hidden_size = 500
-num_classes = 65
-num_epochs = 5
-batch_size = 100
-learning_rate = 0.001
-
-# dataset
-train_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_3_depth_1.csv').to_numpy())
-test_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
-
-# Data loader
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
-                                           batch_size=batch_size,
-                                           shuffle=True)
-
-test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                          batch_size=batch_size,
-                                          shuffle=False)
-
-# Fully connected neural network with one hidden layer
-class NeuralNet(nn.Module):
-    def __init__(self, input_size, hidden_size, num_classes):
-        super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, num_classes)
+class MLP(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(15, 500),
+            nn.ReLU(),
+            nn.Linear(500, 500),
+            nn.ReLU(),
+            nn.Linear(500, 1)
+        )
 
     def forward(self, x):
-        out = self.fc1(x)
-        out = self.relu(out)
-        out = self.fc2(out)
-        return out
+        return self.layers(x)
 
 
-model = NeuralNet(input_size, hidden_size, num_classes).to(device)
+if __name__ == '__main__':
 
-# Loss and optimizer
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    batch_size = 50
 
-# Train the model
-total_step = len(train_loader)
-for epoch in range(num_epochs):
-    for i, (b_vals, indent_num) in enumerate(train_loader):
-        # Move tensors to the configured device
-        b_vals = b_vals.to(device)
-        indent_num = indent_num.type(torch.LongTensor).to(device)
+    full_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_1_depth_1.csv').to_numpy())
+    train_size = int(0.8 * len(full_dataset))
+    test_size = len(full_dataset) - train_size
+    train_dataset, test_dataset = torch.utils.data.random_split(full_dataset, [train_size, test_size])
 
-        # Forward pass
-        outputs = model(b_vals.float())
-        loss = criterion(outputs, indent_num)
+    train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                               batch_size=batch_size,
+                                               shuffle=True)
+    test_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                              batch_size=batch_size,
+                                              shuffle=True)
 
-        # Backward and optimize
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+    # Initialize the MLP
+    mlp = MLP()
 
-        if (i + 1) % 100 == 0:
-            print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
-                  .format(epoch + 1, num_epochs, i + 1, total_step, loss.item()))
+    # Define the loss function and optimizer
+    loss_function = nn.MSELoss()
+    optimizer = torch.optim.Adam(mlp.parameters(), lr=1e-4)
+
+    # Run the training loop
+    for epoch in range(0, 5):  # 5 epochs at maximum
+
+        # Print epoch
+        print(f'Starting epoch {epoch + 1}')
+
+        # Set current loss value
+        current_loss = 0.0
+
+        # Iterate over the DataLoader for training data
+        for i, data in enumerate(train_loader, 0):
+            # Get and prepare inputs
+            inputs, x_loc = data
+            inputs, x_loc = inputs.float(), x_loc.float()
+
+            # Zero the gradients
+            optimizer.zero_grad()
+
+            # Perform forward pass
+            outputs = mlp(inputs)
+
+            # Compute loss
+            loss = loss_function(outputs, x_loc)
+
+            # Perform backward pass
+            loss.backward()
+
+            # Perform optimization
+            optimizer.step()
+
+            # Print statistics
+            current_loss += loss.item()
+            if i % 10 == 0:
+                print('Loss after mini-batch %5d: %.3f' %
+                      (i + 1, current_loss / 500))
+                current_loss = 0.0
+
+    # Process is complete.
+    print('Training process has finished.')
 
 # Test the model
 # In test phase, we don't need to compute gradients (for memory efficiency)
 with torch.no_grad():
     correct = 0
     total = 0
-    for b_vals, indent_num in test_loader:
-        b_vals = b_vals.to(device)
-        indent_num = indent_num.type(torch.LongTensor).to(device)
-        outputs = model(b_vals.float())
-        _, predicted = torch.max(outputs.data, 1)
-        total += b_vals.size(0)
-        correct += (predicted == indent_num).sum().item()
-
+    for inputs, x_loc in test_loader:
+        inputs, x_loc = inputs.float(), x_loc.float()
+        predicted = mlp(inputs)
+        predicted = np.reshape(predicted, -1)
+        print(predicted)
+        total += inputs.size(0)
+        tolerance = 0.03
+        correct += ((x_loc-tolerance <= predicted) & (predicted <= x_loc+tolerance)).sum().item()
     print('Accuracy of the network on the test values: {} %'.format(100 * correct / total))
 
-# Save the model checkpoint
-torch.save(model.state_dict(), 'model.ckpt')
-
-https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-create-a-neural-network-for-regression-with-pytorch.md
+print(train_dataset[0][1], mlp(torch.from_numpy(train_dataset[0][0]).float()).item())
