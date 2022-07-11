@@ -115,8 +115,3 @@ with torch.no_grad():
         tolerance = 0.5
         correct += ((x_loc-tolerance <= predicted) & (predicted <= x_loc+tolerance)).sum().item()
     print('Accuracy of the network on the test values: {} %'.format(100 * correct / total))
-
-print(train_dataset[0][1], mlp(torch.from_numpy(train_dataset[0][0]).float()).item())
-for layer in mlp.children():
-   if hasattr(layer, 'reset_parameters'):
-       layer.reset_parameters()
