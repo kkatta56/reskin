@@ -73,13 +73,14 @@ for i in range(1,ports+1):
 
         # Process data
         proc_df = processData(df, bls)
-        samples_df = sample_process(proc_df)
-        norm_df = normalize(samples_df)
+        proc_df.to_csv('datasets/processed/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index=False)
 
-        # Save data
-        proc_df.to_csv('datasets/processed/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index = False)
-        samples_df.to_csv('datasets/samples/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index = False)
-        norm_df.to_csv('datasets/normalized/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8',
+        samples_df = sample_process(proc_df)
+        samples_df.to_csv('datasets/samples/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8',
                           index=False)
+
+        norm_df = normalize(samples_df)
+        norm_df.to_csv('datasets/normalized/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8',
+                       index=False)
 
         print('Processed raw/port_'+str(i)+'_depth_'+str(j))
