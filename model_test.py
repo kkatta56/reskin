@@ -38,10 +38,13 @@ if __name__ == '__main__':
 
     batch_size = 50
 
-    full_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_1_depth_1.csv').to_numpy())
+    full_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
     train_size = int(0.8 * len(full_dataset))
     test_size = len(full_dataset) - train_size
     train_dataset, test_dataset = torch.utils.data.random_split(full_dataset, [train_size, test_size])
+
+    #train_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
+    #test_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_3_depth_1.csv').to_numpy())
 
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                batch_size=batch_size,
@@ -71,6 +74,7 @@ if __name__ == '__main__':
             # Get and prepare inputs
             inputs, x_loc = data
             inputs, x_loc = inputs.float(), x_loc.float()
+            x_loc = x_loc.reshape((x_loc.shape[0], 1))
 
             # Zero the gradients
             optimizer.zero_grad()
@@ -106,10 +110,13 @@ with torch.no_grad():
         inputs, x_loc = inputs.float(), x_loc.float()
         predicted = mlp(inputs)
         predicted = np.reshape(predicted, -1)
-        print(predicted)
+        print(predicted, x_loc)
         total += inputs.size(0)
-        tolerance = 0.03
+        tolerance = 0.5
         correct += ((x_loc-tolerance <= predicted) & (predicted <= x_loc+tolerance)).sum().item()
     print('Accuracy of the network on the test values: {} %'.format(100 * correct / total))
 
 print(train_dataset[0][1], mlp(torch.from_numpy(train_dataset[0][0]).float()).item())
+for layer in mlp.children():
+   if hasattr(layer, 'reset_parameters'):
+       layer.reset_parameters()
