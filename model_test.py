@@ -7,7 +7,7 @@ import pandas as pd
 class ResDataSet(Dataset):
     def __init__(self, arr):
         self.b_vals = arr[:, 0:15]
-        self.loc = arr[:, 16:18]
+        self.loc = arr[:, [19, 20, 17]]
 
     def __len__(self):
         return len(self.loc)
@@ -29,7 +29,7 @@ class MLP(nn.Module):
             nn.ReLU(),
             nn.Linear(200, 200),
             nn.ReLU(),
-            nn.Linear(200, 2)
+            nn.Linear(200, 3)
         )
 
     def forward(self, x):
@@ -57,7 +57,7 @@ def train_model(train_loader):
             # Get and prepare inputs
             inputs, loc = data
             inputs, loc = inputs.float(), loc.float()
-            #loc = loc.reshape((loc.shape[0], 2))
+            loc = loc.reshape((loc.shape[0], 3))
 
             # Zero the gradients
             optimizer.zero_grad()
@@ -85,21 +85,27 @@ def train_model(train_loader):
     print('Training process has finished.')
     return mlp
 
-def test_model(test_loader, mlp, tolerance):
+def test_model(test_loader, mlp, tolerance, f_tolerance):
     with torch.no_grad():
-        x_correct, y_correct, tot_correct, total = 0, 0, 0, 0
+        x_correct, y_correct, tot_correct, force_correct, total = 0, 0, 0, 0, 0
         for inputs, loc in test_loader:
-            x_loc, y_loc = loc[:,0], loc[:,1]
-            inputs, x_loc, y_loc = inputs.float(), x_loc.float(), y_loc.float()
+            x_loc, y_loc, force = loc[:,0], loc[:,1], loc[:,2]
+            inputs, x_loc, y_loc, force = inputs.float(), x_loc.float(), y_loc.float(), force.float()
             pred = mlp(inputs)
-            x_pred, y_pred = pred[:,0], pred[:,1]
-            #x_pred, y_pred = np.reshape(x_pred, -1), np.reshape(y_pred, -1)
+            x_pred, y_pred, force_pred = pred[:,0], pred[:,1], pred[:,2]
+            x_pred, y_pred, force_pred = np.reshape(x_pred, -1), np.reshape(y_pred, -1), np.reshape(force_pred, -1)
             total += inputs.size(0)
             x_correct += ((x_loc - tolerance <= x_pred) & (x_pred <= x_loc + tolerance)).sum().item()
             y_correct += ((y_loc - tolerance <= y_pred) & (y_pred <= y_loc + tolerance)).sum().item()
+            force_correct += ((force - f_tolerance <= force_pred) & (force_pred <= force + f_tolerance)).sum().item()
             tot_correct += ((x_loc - tolerance <= x_pred) & (x_pred <= x_loc + tolerance) & (
-                        y_loc - tolerance <= y_pred) & (y_pred <= y_loc + tolerance)).sum().item()
-        return [100 * x_correct / total, 100 * y_correct / total, 100 * tot_correct / total]
+                        y_loc - tolerance <= y_pred) & (y_pred <= y_loc + tolerance) &
+                            (force - f_tolerance <= force_pred) & (force_pred <= force + f_tolerance)).sum().item()
+        print('X value accuracy of the network on the test values: {}%'.format(100 * x_correct / total))
+        print('Y value accuracy of the network on the test values: {}%'.format(100 * y_correct / total))
+        print('Force value accuracy of the network on the test values: {}%'.format(100 * force_correct / total))
+        print('Accuracy of the network on the test values: {}%'.format(100 * tot_correct / total))
+        return [100 * x_correct / total, 100 * y_correct / total, 100 * force_correct / total, 100 * tot_correct / total]
 
 def split_dataset(train_proportion, filename):
     full_dataset = ResDataSet(pd.read_csv(filename).to_numpy())
@@ -109,18 +115,19 @@ def split_dataset(train_proportion, filename):
 
 batch_size = 10
 
-train_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
-test_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_3_depth_1.csv').to_numpy())
-#train_dataset, test_dataset = split_dataset(0.8,'datasets/normalized/port_2_depth_1.csv')
+train_dataset = ResDataSet(pd.read_csv('datasets/processed/port_1_depth_1.csv').to_numpy())
+test_dataset = ResDataSet(pd.read_csv('datasets/processed/port_2_depth_1.csv').to_numpy())
+#train_dataset, test_dataset = split_dataset(0.8,'datasets/processed/port_1_depth_1.csv')
 
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=batch_size,
                                            shuffle=True)
-test_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=batch_size,
                                           shuffle=True)
-tolerance = 0.4
+tolerance = 0.5
+f_tolerance = 0.1
 data = []
 model = train_model(train_loader)
-results = test_model(test_loader, model, tolerance)
+results = test_model(test_loader, model, tolerance, f_tolerance)
 print(results)
