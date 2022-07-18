@@ -123,9 +123,9 @@ def split_dataset(train_proportion, filename):
 
 batch_size = 10
 
-#train_dataset = ResDataSet(pd.read_csv('datasets/processed/port_1_depth_1.csv').to_numpy())
-#test_dataset = ResDataSet(pd.read_csv('datasets/processed/port_2_depth_1.csv').to_numpy())
-train_dataset, test_dataset = split_dataset(0.9,'datasets/normalized/port_1_depth_1.csv')
+train_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
+test_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_1_depth_2.csv').to_numpy())
+#train_dataset, test_dataset = split_dataset(0.9,'datasets/normalized/port_1_depth_1.csv')
 
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=batch_size,
@@ -138,3 +138,5 @@ f_tolerance = 0.2
 data = []
 model = train_model(train_loader)
 results = test_model(test_loader, model, tolerance, f_tolerance)
+
+# process data for  port 3
