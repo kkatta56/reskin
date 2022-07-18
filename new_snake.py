@@ -13,7 +13,7 @@ from reskin_sensor import ReSkinProcess
 from utils.force_sensor import ForceSensor, _ForceSensorSetting
 
 
-def save_data_csv(res_bl, res_contact, fs_bl, fs_contact, xs, ys, depth, mag_num, num_samples, file_name):
+def save_data_csv(res_bl, res_contact, fs_bl, fs_contact, xs, ys, depth, mag_num, file_name):
     col_names = ['T', 'Bx', 'By', 'Bz']
     fields = []
     for i in range(mag_num):
@@ -36,8 +36,8 @@ def save_data_csv(res_bl, res_contact, fs_bl, fs_contact, xs, ys, depth, mag_num
             rows_bl.append(res_bl[i][j].data)
 
 
-    for i in range(len(res_bl)):
-        for j in range(len(res_bl[i])):
+    for i in range(len(res_contact)):
+        for j in range(len(res_contact[i])):
             res_contact[i][j].data.append(fs_contact[i][0][j][0])
             res_contact[i][j].data.append(fs_contact[i][0][j][1])
             res_contact[i][j].data.append(fs_contact[i][0][j][2])
@@ -100,7 +100,7 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, file
         x += xmove
         y += ymove
 
-    save_data_csv(res_bl, res_contact, fs_bl, fs_contact, x_loc, y_loc, depth, reskin_sensor.num_mags, num_samples, filename)
+    save_data_csv(res_bl, res_contact, fs_bl, fs_contact, x_loc, y_loc, depth, reskin_sensor.num_mags, filename)
     print("Iteration saved.")
 
 def getSingleSkinData(port, pid, origin, depths, db, fs, num_samples):
@@ -152,7 +152,7 @@ force_sensor_height = 13
 origins = [[177.29611206054688, -197.7755126953125, -87.25672912597656+force_sensor_height],
            [177.29611206054688, -96.56216430664062, -87.25672912597656+force_sensor_height],
            [178.79611206054688, 77.446216430664062, -87.25672912597656+force_sensor_height]]
-depths = [8]
+depths = [8, 8, 8]
 
 # Iterate over each port/origin
 for pid,port in enumerate(port_names):

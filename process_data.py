@@ -48,12 +48,12 @@ def normalize(df):
     return df
 
 # Input number of depths/sensors
-ports = 3
+ports = 1
 depths = 1
 
 # Run process over all raw data files
 for i in range(1,ports+1):
-    for j in range(1,depths+1):
+    for j in range(1,depths+2):
 
         # Open .csv/.npy files and create dataframe
         d_bl, col_names_bl = openFile('datasets/raw/port_'+str(i)+'_depth_'+str(j)+'_bl.csv')
