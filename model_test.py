@@ -113,7 +113,7 @@ def split_dataset(train_proportion, filename):
     test_size = len(full_dataset) - train_size
     return torch.utils.data.random_split(full_dataset, [train_size, test_size])
 
-batch_size = 11
+batch_size = 10
 
 #train_dataset = ResDataSet(pd.read_csv('datasets/processed/port_1_depth_1.csv').to_numpy())
 #test_dataset = ResDataSet(pd.read_csv('datasets/processed/port_2_depth_1.csv').to_numpy())
