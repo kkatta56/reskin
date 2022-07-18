@@ -78,7 +78,7 @@ def train_model(train_loader):
             current_loss += loss.item()
             if i % 10 == 0:
                 print('Loss after mini-batch %5d: %.3f' %
-                      (i + 1, current_loss / 500))
+                      (i + 1, current_loss))
                 current_loss = 0.0
 
     # Process is complete.
@@ -117,7 +117,7 @@ batch_size = 10
 
 #train_dataset = ResDataSet(pd.read_csv('datasets/processed/port_1_depth_1.csv').to_numpy())
 #test_dataset = ResDataSet(pd.read_csv('datasets/processed/port_2_depth_1.csv').to_numpy())
-train_dataset, test_dataset = split_dataset(0.8,'datasets/processed/port_1_depth_1.csv')
+train_dataset, test_dataset = split_dataset(0.9,'datasets/normalized/port_1_depth_1.csv')
 
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=batch_size,
@@ -125,7 +125,7 @@ train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=batch_size,
                                           shuffle=True)
-tolerance = 0.5
+tolerance = 0.5/16
 f_tolerance = 0.1
 data = []
 model = train_model(train_loader)

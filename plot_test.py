@@ -17,7 +17,7 @@ def openFile(filename):
     return data, column_names
 
 # Open CSV files and create dataframe
-d, col_names = openFile('datasets/normalized/port_1_depth_1.csv')
+d, col_names = openFile('datasets/processed/port_1_depth_1.csv')
 norm_df = pd.DataFrame(d, columns=col_names)
 d, col_names = openFile('datasets/normalized/port_2_depth_1.csv')
 norm_df2 = pd.DataFrame(d, columns=col_names)
