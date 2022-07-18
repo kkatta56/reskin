@@ -35,14 +35,9 @@ def save_data_csv(res_bl, res_contact, fs_bl, fs_contact, xs, ys, depth, mag_num
             res_bl[i][j].data.append(depth)
             rows_bl.append(res_bl[i][j].data)
 
-    with open(file_name + "_bl.csv", 'w') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(fields)
-        csvwriter.writerows(rows_bl)
 
-
-    for i in range(len(res_contact)):
-        for j in range(len(res_contact[i])):
+    for i in range(len(res_bl)):
+        for j in range(len(res_bl[i])):
             res_contact[i][j].data.append(fs_contact[i][0][j][0])
             res_contact[i][j].data.append(fs_contact[i][0][j][1])
             res_contact[i][j].data.append(fs_contact[i][0][j][2])
@@ -51,7 +46,12 @@ def save_data_csv(res_bl, res_contact, fs_bl, fs_contact, xs, ys, depth, mag_num
             res_contact[i][j].data.append(ys[i])
             res_contact[i][j].data.append(depth)
             rows_contact.append(res_contact[i][j].data)
-    print(len(res_bl[i]))
+
+
+    with open(file_name + "_bl.csv", 'w') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(fields)
+        csvwriter.writerows(rows_bl)
 
     with open(file_name + "_contact.csv", 'w') as csvfile:
         csvwriter = csv.writer(csvfile)
@@ -70,6 +70,7 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, file
     fs_bl, fs_contact = [], []
     res_bl, res_contact = [], []
     x_loc, y_loc = [], []
+    num_samples = num_samples
 
     # Start snake path
     for j in range(y_indents):
@@ -81,14 +82,15 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, file
                 y_loc.append(y)
 
                 # Collect baseline data from ReSkin and Force sensors
-                res_bl.append(reskin_sensor.get_data(int(num_samples/4)))
-                fs_bl.append(fs.get_data(int(num_samples/4)))
+                #time.sleep(0.1)
+                res_bl.append(reskin_sensor.get_data(num_samples))
+                fs_bl.append(fs.get_data(num_samples))
 
                 # Make indentation with robot and collect contact data
                 robot.move([x, y, -depth])
                 # time.sleep(0.1)
-                res_contact.append(reskin_sensor.get_data(num_samples))
-                fs_contact.append(fs.get_data(num_samples))
+                res_contact.append(reskin_sensor.get_data(num_samples*4))
+                fs_contact.append(fs.get_data(num_samples*4))
 
                 # Finish indentation
                 robot.move([x, y, 0])
@@ -151,10 +153,9 @@ origins = [[177.29611206054688, -197.7755126953125, -87.25672912597656+force_sen
            [177.29611206054688, -96.56216430664062, -87.25672912597656+force_sensor_height],
            [178.79611206054688, 77.446216430664062, -87.25672912597656+force_sensor_height]]
 depths = [8]
-num_samples = 400
 
 # Iterate over each port/origin
 for pid,port in enumerate(port_names):
-    getSingleSkinData(port, pid, origins[pid], depths, db, force_sensor, num_samples)
+    getSingleSkinData(port, pid, origins[pid], depths, db, force_sensor, 100)
 
 force_sensor.pause_recording()

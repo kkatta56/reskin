@@ -58,7 +58,8 @@ def normalize(df):
 
 # Input number of depths/sensors
 depths = 2
-ports = 4
+ports = 3
+
 # Run process over all raw data files
 for i in range(1,ports+1):
     for j in range(1,depths+1):
