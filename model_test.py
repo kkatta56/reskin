@@ -6,16 +6,16 @@ import pandas as pd
 
 class ResDataSet(Dataset):
     def __init__(self, arr):
-        self.b_vals = arr[:, 0:15]
-        self.loc = arr[:, [19, 20, 17]]
+        self.B = arr[:, 0:15]
+        self.xyF = arr[:, [19, 20, 17]]
 
     def __len__(self):
-        return len(self.loc)
+        return len(self.xyF)
 
     def __getitem__(self, idx):
-        b_vals = self.b_vals[idx]
-        loc = self.loc[idx]
-        return b_vals, loc
+        B = self.B[idx]
+        xyF = self.xyF[idx]
+        return B, xyF
 
 class MLP(nn.Module):
     def __init__(self):
@@ -55,18 +55,18 @@ def train_model(train_loader):
         # Iterate over the DataLoader for training data
         for i, data in enumerate(train_loader, 0):
             # Get and prepare inputs
-            inputs, loc = data
-            inputs, loc = inputs.float(), loc.float()
-            loc = loc.reshape((loc.shape[0], 3))
+            inputs, xyF = data
+            inputs, xyF = inputs.float(), xyF.float()
+            xyF = xyF.reshape((xyF.shape[0], 3))
 
             # Zero the gradients
             optimizer.zero_grad()
 
             # Perform forward pass
-            loc_val = mlp(inputs)
+            xyF_model = mlp(inputs)
 
             # Compute loss
-            loss = loss_function(loc_val, loc)
+            loss = loss_function(xyF_model, xyF)
 
             # Perform backward pass
             loss.backward()
@@ -88,8 +88,8 @@ def train_model(train_loader):
 def test_model(test_loader, mlp, tolerance, f_tolerance):
     with torch.no_grad():
         x_correct, y_correct, tot_correct, force_correct, total = 0, 0, 0, 0, 0
-        for inputs, loc in test_loader:
-            x_loc, y_loc, force = loc[:,0], loc[:,1], loc[:,2]
+        for inputs, xyF in test_loader:
+            x_loc, y_loc, force = xyF[:,0], xyF[:,1], xyF[:,2]
             inputs, x_loc, y_loc, force = inputs.float(), x_loc.float(), y_loc.float(), force.float()
             pred = mlp(inputs)
             x_pred, y_pred, force_pred = pred[:,0], pred[:,1], pred[:,2]
