@@ -1,0 +1,22 @@
+[02-08 22:40:30] Using dummy sensor: Maybe PyDAQmx or nidaqmx is not  installed
+[02-08 22:40:30] Main process priority: normal
+[02-08 22:40:30] UDP start, pid 5598, priority normal
+[02-08 22:40:31] UDP quit, polling profile [0,0,0,0,0,0,0,0,0,0,5]
+[02-08 22:40:31] Quit recording
+[02-08 22:40:50] Using dummy sensor: Maybe PyDAQmx or nidaqmx is not  installed
+[02-08 22:40:51] Main process priority: normal
+[02-08 22:40:51] UDP start, pid 5627, priority normal
+[02-08 22:41:25] Using dummy sensor: Maybe PyDAQmx or nidaqmx is not  installed
+[02-08 22:41:25] Main process priority: normal
+[02-08 22:41:25] UDP start, pid 5642, priority normal
+[02-08 22:41:48] Using dummy sensor: Maybe PyDAQmx or nidaqmx is not  installed
+[02-08 22:41:48] Main process priority: normal
+[02-08 22:41:48] UDP start, pid 5669, priority normal
+[02-08 22:42:08] Using dummy sensor: Maybe PyDAQmx or nidaqmx is not  installed
+[02-08 22:42:08] Main process priority: normal
+[02-08 22:42:08] UDP start, pid 5696, priority normal
+[02-08 22:42:09] Sensor start, pid 5695, priority normal
+[02-08 23:13:42] Using dummy sensor: Maybe PyDAQmx or nidaqmx is not  installed
+[02-08 23:13:42] Main process priority: normal
+[02-08 23:13:42] UDP start, pid 6172, priority normal
+[02-08 23:13:43] Sensor start, pid 6171, priority normal
