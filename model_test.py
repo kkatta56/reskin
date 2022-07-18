@@ -87,25 +87,33 @@ def train_model(train_loader):
 
 def test_model(test_loader, mlp, tolerance, f_tolerance):
     with torch.no_grad():
-        x_correct, y_correct, tot_correct, force_correct, total = 0, 0, 0, 0, 0
+        loc_correct, force_correct, tot_correct, total = 0, 0, 0, 0
         for inputs, xyF in test_loader:
             x_loc, y_loc, force = xyF[:,0], xyF[:,1], xyF[:,2]
             inputs, x_loc, y_loc, force = inputs.float(), x_loc.float(), y_loc.float(), force.float()
             pred = mlp(inputs)
+
             x_pred, y_pred, force_pred = pred[:,0], pred[:,1], pred[:,2]
             x_pred, y_pred, force_pred = np.reshape(x_pred, -1), np.reshape(y_pred, -1), np.reshape(force_pred, -1)
+
             total += inputs.size(0)
-            x_correct += ((x_loc - tolerance <= x_pred) & (x_pred <= x_loc + tolerance)).sum().item()
-            y_correct += ((y_loc - tolerance <= y_pred) & (y_pred <= y_loc + tolerance)).sum().item()
-            force_correct += ((force - f_tolerance <= force_pred) & (force_pred <= force + f_tolerance)).sum().item()
-            tot_correct += ((x_loc - tolerance <= x_pred) & (x_pred <= x_loc + tolerance) & (
-                        y_loc - tolerance <= y_pred) & (y_pred <= y_loc + tolerance) &
-                            (force - f_tolerance <= force_pred) & (force_pred <= force + f_tolerance)).sum().item()
-        print('X value accuracy of the network on the test values: {}%'.format(100 * x_correct / total))
-        print('Y value accuracy of the network on the test values: {}%'.format(100 * y_correct / total))
+            loc_correct += ((x_loc - tolerance <= x_pred) &
+                            (x_pred <= x_loc + tolerance) &
+                            (y_loc - tolerance <= y_pred) &
+                            (y_pred <= y_loc + tolerance)).sum().item()
+            force_correct += ((force - f_tolerance <= force_pred) &
+                              (force_pred <= force + f_tolerance)).sum().item()
+            tot_correct += ((x_loc - tolerance <= x_pred) &
+                            (x_pred <= x_loc + tolerance) &
+                            (y_loc - tolerance <= y_pred) &
+                            (y_pred <= y_loc + tolerance) &
+                            (force - f_tolerance <= force_pred) &
+                            (force_pred <= force + f_tolerance)).sum().item()
+
+        print('Location value accuracy of the network on the test values: {}%'.format(100 * loc_correct / total))
         print('Force value accuracy of the network on the test values: {}%'.format(100 * force_correct / total))
         print('Accuracy of the network on the test values: {}%'.format(100 * tot_correct / total))
-        return [100 * x_correct / total, 100 * y_correct / total, 100 * force_correct / total, 100 * tot_correct / total]
+        return [100 * loc_correct / total, 100 * force_correct / total, 100 * tot_correct / total]
 
 def split_dataset(train_proportion, filename):
     full_dataset = ResDataSet(pd.read_csv(filename).to_numpy())
@@ -117,7 +125,7 @@ batch_size = 10
 
 #train_dataset = ResDataSet(pd.read_csv('datasets/processed/port_1_depth_1.csv').to_numpy())
 #test_dataset = ResDataSet(pd.read_csv('datasets/processed/port_2_depth_1.csv').to_numpy())
-train_dataset, test_dataset = split_dataset(0.9,'datasets/normalized/port_1_depth_1.csv')
+train_dataset, test_dataset = split_dataset(0.9,'datasets/normalized/port_2_depth_1.csv')
 
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=batch_size,
@@ -125,9 +133,8 @@ train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=batch_size,
                                           shuffle=True)
-tolerance = 0.5/16
-f_tolerance = 0.1
+tolerance = 1
+f_tolerance = 0.2
 data = []
 model = train_model(train_loader)
 results = test_model(test_loader, model, tolerance, f_tolerance)
-print(results)

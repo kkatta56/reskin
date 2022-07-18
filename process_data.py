@@ -44,7 +44,7 @@ def processData(df,bls):
     return df
 
 def normalize(df):
-    df.iloc[:, 0:18] = (df.iloc[:, 0:18] - df.iloc[:, 0:18].min()) / (df.iloc[:, 0:18].max() - df.iloc[:, 0:18].min())
+    df.iloc[:, 0:15] = (df.iloc[:, 0:15] - df.iloc[:, 0:15].min()) / (df.iloc[:, 0:15].max() - df.iloc[:, 0:15].min())
     return df
 
 # Input number of depths/sensors
