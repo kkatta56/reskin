@@ -3,6 +3,8 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+
 
 class ResDataSet(Dataset):
     def __init__(self, arr):
@@ -121,12 +123,46 @@ def split_dataset(train_proportion, filename):
     test_size = len(full_dataset) - train_size
     return torch.utils.data.random_split(full_dataset, [train_size, test_size])
 
+def combine_datasets(urls):
+    dfs = []
+    for url in urls:
+        df = pd.read_csv(url)
+        dfs.append(df)
+    return ResDataSet(pd.concat(dfs, ignore_index=True).to_numpy())
+
+def plotPredVsTrue(model, test_loader, category):
+    true_value = []
+    pred_value = []
+    for inputs, xyF in test_loader:
+        for i in range(len(xyF)):
+            true_value.append(xyF[i][category].item())
+            pred_value.append(model(inputs[i].float())[category].item())
+    plt.scatter(true_value, pred_value)
+    plt.xlabel('True Value')
+    plt.ylabel('Predicted Value')
+    plt.show()
+
+
+train_urls = ['datasets/normalized/port_1_depth_1.csv',
+              'datasets/normalized/port_1_depth_2.csv',
+              'datasets/normalized/port_1_depth_3.csv',
+              'datasets/normalized/port_3_depth_1.csv',
+              'datasets/normalized/port_3_depth_2.csv',
+              'datasets/normalized/port_3_depth_3.csv']
+test_urls = ['datasets/normalized/port_2_depth_1.csv',
+             'datasets/normalized/port_2_depth_2.csv',
+             'datasets/normalized/port_2_depth_3.csv']
+
+#train_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
+#test_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_1_depth_2.csv').to_numpy())
+
+#train_dataset = combine_datasets(train_urls)
+#test_dataset = combine_datasets(test_urls)
+
+train_dataset, test_dataset = split_dataset(0.9,'datasets/normalized/port_1_depth_1.csv')
+
+
 batch_size = 10
-
-train_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
-test_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_1_depth_2.csv').to_numpy())
-#train_dataset, test_dataset = split_dataset(0.9,'datasets/normalized/port_1_depth_1.csv')
-
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=batch_size,
                                            shuffle=True)
@@ -137,6 +173,8 @@ tolerance = 1
 f_tolerance = 0.2
 data = []
 model = train_model(train_loader)
+plotPredVsTrue(model, test_loader, 2)
 results = test_model(test_loader, model, tolerance, f_tolerance)
+print(results)
 
 # process data for  port 3
