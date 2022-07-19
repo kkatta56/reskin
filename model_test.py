@@ -117,8 +117,7 @@ def test_model(test_loader, mlp, tolerance, f_tolerance):
         print('Accuracy of the network on the test values: {}%'.format(100 * tot_correct / total))
         return [100 * loc_correct / total, 100 * force_correct / total, 100 * tot_correct / total]
 
-def split_dataset(train_proportion, filename):
-    full_dataset = ResDataSet(pd.read_csv(filename).to_numpy())
+def split_dataset(train_proportion, full_dataset):
     train_size = int(train_proportion * len(full_dataset))
     test_size = len(full_dataset) - train_size
     return torch.utils.data.random_split(full_dataset, [train_size, test_size])
@@ -142,24 +141,35 @@ def plotPredVsTrue(model, test_loader, category):
     plt.ylabel('Predicted Value')
     plt.show()
 
-
-train_urls = ['datasets/normalized/port_1_depth_1.csv',
-              'datasets/normalized/port_1_depth_2.csv',
-              'datasets/normalized/port_1_depth_3.csv',
-              'datasets/normalized/port_3_depth_1.csv',
-              'datasets/normalized/port_3_depth_2.csv',
-              'datasets/normalized/port_3_depth_3.csv']
-test_urls = ['datasets/normalized/port_2_depth_1.csv',
-             'datasets/normalized/port_2_depth_2.csv',
-             'datasets/normalized/port_2_depth_3.csv']
-
+#################### Train with 1 dataset / Test with 1 dataset ##########################
 #train_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
 #test_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_1_depth_2.csv').to_numpy())
 
+
+############ Train with multiple datasets / Test with multiple datasets ##################
+#train_urls = ['datasets/normalized/port_1_depth_1.csv',
+#              'datasets/normalized/port_1_depth_2.csv',
+#              'datasets/normalized/port_1_depth_3.csv',
+#              'datasets/normalized/port_3_depth_1.csv',
+#              'datasets/normalized/port_3_depth_2.csv',
+#              'datasets/normalized/port_3_depth_3.csv']
+#test_urls = ['datasets/normalized/port_2_depth_1.csv',
+#             'datasets/normalized/port_2_depth_2.csv',
+#             'datasets/normalized/port_2_depth_3.csv']
 #train_dataset = combine_datasets(train_urls)
 #test_dataset = combine_datasets(test_urls)
 
-train_dataset, test_dataset = split_dataset(0.9,'datasets/normalized/port_1_depth_1.csv')
+
+######################### Train and test on same dataset ##################################
+#full_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_1_depth_1.csv').to_numpy())
+#train_dataset, test_dataset = split_dataset(0.9, full_dataset)
+
+
+################### Train and test on same datasets (multiple) ############################
+train_urls = ['datasets/normalized/port_1_depth_1.csv',
+              'datasets/normalized/port_1_depth_2.csv']
+full_dataset = combine_datasets(train_urls)
+train_dataset, test_dataset = split_dataset(0.9, full_dataset)
 
 
 batch_size = 10
@@ -171,10 +181,6 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           shuffle=True)
 tolerance = 1
 f_tolerance = 0.2
-data = []
 model = train_model(train_loader)
-plotPredVsTrue(model, test_loader, 2)
-results = test_model(test_loader, model, tolerance, f_tolerance)
-print(results)
-
-# process data for  port 3
+#plotPredVsTrue(model, test_loader, 2)
+print(test_model(test_loader, model, tolerance, f_tolerance))

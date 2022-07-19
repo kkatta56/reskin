@@ -8,3 +8,10 @@
 [07-18 16:11:36] Main process priority: normal
 [07-18 16:11:36] UDP start, pid 18173, priority normal
 [07-18 16:11:37] Sensor start, pid 18171, priority normal
+[07-19 11:31:51] Main process priority: normal
+[07-19 11:31:51] UDP start, pid 9236, priority normal
+[07-19 11:31:52] Sensor start, pid 9234, priority normal
+[07-19 12:05:38] Sensor stop, name 9234
+[07-19 12:05:49] UDP quit, polling profile [0,0,0,0,0,0,0,0,0,0,10188]
+[07-19 12:05:49] Sensor quit, _unnamedTask<0>, polling profile [405501,1235881,379866,490,446,1317,1429,462,275,118,146]
+[07-19 12:05:49] Quit recording
