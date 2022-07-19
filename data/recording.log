@@ -15,3 +15,13 @@
 [07-19 12:05:49] UDP quit, polling profile [0,0,0,0,0,0,0,0,0,0,10188]
 [07-19 12:05:49] Sensor quit, _unnamedTask<0>, polling profile [405501,1235881,379866,490,446,1317,1429,462,275,118,146]
 [07-19 12:05:49] Quit recording
+[07-19 15:24:07] Main process priority: normal
+[07-19 15:24:07] UDP start, pid 13934, priority normal
+[07-19 15:24:08] Sensor start, pid 13932, priority normal
+[07-19 15:25:21] Main process priority: normal
+[07-19 15:25:21] UDP start, pid 13978, priority normal
+[07-19 15:25:22] Sensor start, pid 13976, priority normal
+[07-19 15:36:33] Sensor stop, name 13976
+[07-19 15:36:37] UDP quit, polling profile [0,0,0,0,0,0,0,0,0,0,3379]
+[07-19 15:36:37] Sensor quit, _unnamedTask<0>, polling profile [125234,421433,123977,2,4,2,3,0,1,0,15]
+[07-19 15:36:37] Quit recording

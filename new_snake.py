@@ -152,7 +152,7 @@ force_sensor_height = 13
 origins = [[177.29611206054688, -197.7755126953125, -87.25672912597656+force_sensor_height],
            [177.29611206054688, -96.56216430664062, -87.25672912597656+force_sensor_height],
            [178.79611206054688, 77.446216430664062, -87.25672912597656+force_sensor_height]]
-depths = [8, 8, 8]
+depths = [5, 7, 9]
 
 # Iterate over each port/origin
 for pid,port in enumerate(port_names):

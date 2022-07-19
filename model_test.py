@@ -141,35 +141,20 @@ def plotPredVsTrue(model, test_loader, category):
     plt.ylabel('Predicted Value')
     plt.show()
 
-#################### Train with 1 dataset / Test with 1 dataset ##########################
-#train_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_2_depth_1.csv').to_numpy())
-#test_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_1_depth_2.csv').to_numpy())
-
 
 ############ Train with multiple datasets / Test with multiple datasets ##################
-#train_urls = ['datasets/normalized/port_1_depth_1.csv',
-#              'datasets/normalized/port_1_depth_2.csv',
-#              'datasets/normalized/port_1_depth_3.csv',
-#              'datasets/normalized/port_3_depth_1.csv',
-#              'datasets/normalized/port_3_depth_2.csv',
-#              'datasets/normalized/port_3_depth_3.csv']
-#test_urls = ['datasets/normalized/port_2_depth_1.csv',
-#             'datasets/normalized/port_2_depth_2.csv',
-#             'datasets/normalized/port_2_depth_3.csv']
-#train_dataset = combine_datasets(train_urls)
-#test_dataset = combine_datasets(test_urls)
-
-
-######################### Train and test on same dataset ##################################
-#full_dataset = ResDataSet(pd.read_csv('datasets/normalized/port_1_depth_1.csv').to_numpy())
-#train_dataset, test_dataset = split_dataset(0.9, full_dataset)
-
-
-################### Train and test on same datasets (multiple) ############################
 train_urls = ['datasets/normalized/port_1_depth_1.csv',
               'datasets/normalized/port_1_depth_2.csv']
-full_dataset = combine_datasets(train_urls)
-train_dataset, test_dataset = split_dataset(0.9, full_dataset)
+test_urls = ['datasets/normalized/port_1_depth_3.csv']
+train_dataset = combine_datasets(train_urls)
+test_dataset = combine_datasets(test_urls)
+
+######################### Train and test on same datasets #################################
+#train_urls = ['datasets/normalized/port_1_depth_1.csv',
+#              'datasets/normalized/port_1_depth_2.csv',
+#              'datasets/normalized/port_1_depth_3.csv']
+#full_dataset = combine_datasets(train_urls)
+#train_dataset, test_dataset = split_dataset(0.9, full_dataset)
 
 
 batch_size = 10
@@ -182,5 +167,5 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
 tolerance = 1
 f_tolerance = 0.2
 model = train_model(train_loader)
-#plotPredVsTrue(model, test_loader, 2)
+plotPredVsTrue(model, test_loader, 2)
 print(test_model(test_loader, model, tolerance, f_tolerance))
