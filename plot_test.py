@@ -17,18 +17,24 @@ def openFile(filename):
     return data, column_names
 
 # Open CSV files and create dataframe
-d, col_names = openFile('datasets/normalized/port_2_depth_1.csv')
+d, col_names = openFile('datasets/normalized/port_1_depth_1.csv')
 norm_df = pd.DataFrame(d, columns=col_names)
-d, col_names = openFile('datasets/normalized/port_2_depth_2.csv')
+d, col_names = openFile('datasets/normalized/port_2_depth_1.csv')
 norm_df2 = pd.DataFrame(d, columns=col_names)
-d, col_names = openFile('datasets/normalized/port_1_depth_2.csv')
+d, col_names = openFile('datasets/normalized/port_3_depth_1.csv')
 norm_df3 = pd.DataFrame(d, columns=col_names)
 
 
 # Plot data
-ax = norm_df.plot(y="Bx0", kind="line")
-norm_df2.plot(y="Bx0", kind="line", ax=ax)
-norm_df3.plot(y="Bx0", kind="line", ax=ax)
+dir = "x"
+mag_id = "2"
+
+plot_val = "B"+dir+mag_id
+#plot_val = "Z_force"
+
+ax = norm_df.plot(y=plot_val, kind="line")
+norm_df2.plot(y=plot_val, kind="line", ax=ax)
+norm_df3.plot(y=plot_val, kind="line", ax=ax)
 
 
 
