@@ -79,7 +79,7 @@ def train_model(train_loader):
             # Print statistics
             current_loss += loss.item()
             if i % 10 == 0:
-                print('Loss after mini-batch %5d: %.3f' %
+                print('Loss after batch %5d: %.3f' %
                       (i + 1, current_loss))
                 current_loss = 0.0
 
@@ -143,18 +143,18 @@ def plotPredVsTrue(model, test_loader, category):
 
 
 ############ Train with multiple datasets / Test with multiple datasets ##################
-train_urls = ['datasets/normalized/port_1_depth_1.csv',
-              'datasets/normalized/port_1_depth_2.csv']
-test_urls = ['datasets/normalized/port_1_depth_3.csv']
-train_dataset = combine_datasets(train_urls)
-test_dataset = combine_datasets(test_urls)
+#train_urls = ['datasets/normalized/port_1_depth_1.csv',
+#              'datasets/normalized/port_1_depth_2.csv']
+#test_urls = ['datasets/normalized/port_1_depth_3.csv']
+#train_dataset = combine_datasets(train_urls)
+#test_dataset = combine_datasets(test_urls)
 
 ######################### Train and test on same datasets #################################
-#train_urls = ['datasets/normalized/port_1_depth_1.csv',
-#              'datasets/normalized/port_1_depth_2.csv',
-#              'datasets/normalized/port_1_depth_3.csv']
-#full_dataset = combine_datasets(train_urls)
-#train_dataset, test_dataset = split_dataset(0.9, full_dataset)
+train_urls = ['datasets/normalized/port_1_depth_1.csv',
+              'datasets/normalized/port_1_depth_2.csv',
+              'datasets/normalized/port_1_depth_3.csv']
+full_dataset = combine_datasets(train_urls)
+train_dataset, test_dataset = split_dataset(0.9, full_dataset)
 
 
 batch_size = 10
