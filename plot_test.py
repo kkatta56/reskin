@@ -32,9 +32,9 @@ mag_id = "2"
 plot_val = "B"+dir+mag_id
 #plot_val = "Z_force"
 
-ax = norm_df.plot(y=plot_val, kind="line")
-norm_df2.plot(y=plot_val, kind="line", ax=ax)
-norm_df3.plot(y=plot_val, kind="line", ax=ax)
+ax = norm_df[0:400].plot(y=plot_val, kind="line")
+norm_df2[0:400].plot(y=plot_val, kind="line", ax=ax)
+norm_df3[0:400].plot(y=plot_val, kind="line", ax=ax)
 
 
 

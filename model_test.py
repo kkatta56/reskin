@@ -143,16 +143,17 @@ def plotPredVsTrue(model, test_loader, category):
 
 
 ############ Train with multiple datasets / Test with multiple datasets ##################
-#train_urls = ['datasets/normalized/port_1_depth_1.csv',
-#              'datasets/normalized/port_1_depth_2.csv']
-#test_urls = ['datasets/normalized/port_1_depth_3.csv']
+#train_urls = [
+#             ]
+#test_urls = ['datasets/normalized/port_1_depth_1.csv']
 #train_dataset = combine_datasets(train_urls)
 #test_dataset = combine_datasets(test_urls)
 
 ######################### Train and test on same datasets #################################
 train_urls = ['datasets/normalized/port_1_depth_1.csv',
               'datasets/normalized/port_1_depth_2.csv',
-              'datasets/normalized/port_1_depth_3.csv']
+              'datasets/normalized/port_1_depth_3.csv',
+              ]
 full_dataset = combine_datasets(train_urls)
 train_dataset, test_dataset = split_dataset(0.9, full_dataset)
 

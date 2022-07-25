@@ -24,6 +24,7 @@ def save_data_csv(res_bl, res_contact, fs_bl, fs_contact, xs, ys, depth, mag_num
     rows_bl, rows_contact = [], []
 
     # i is the indent_id, and j is the sample_id
+    # change to .npz file
     for i in range(len(res_bl)):
         for j in range(len(res_bl[i])):
             res_bl[i][j].data.append(fs_bl[i][0][j][0])
@@ -125,7 +126,6 @@ def getSingleSkinData(port, pid, origin, depths, db, fs, num_samples):
     # Stop sensor stream
     sensor_stream.pause_streaming()
     sensor_stream.join()
-
 
 
 # Initialize Dobot
