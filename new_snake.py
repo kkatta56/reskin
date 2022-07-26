@@ -13,58 +13,47 @@ from reskin_sensor import ReSkinProcess
 from utils.force_sensor import ForceSensor, _ForceSensorSetting
 
 
-def save_data_csv(res_bl, res_contact, fs_bl, fs_contact, xs, ys, depth, mag_num, file_name):
+def save_data_npz(res_bl, res_contact, fs_bl, fs_contact, xs, ys, mag_num, file_name):
     col_names = ['T', 'Bx', 'By', 'Bz']
     fields = []
     for i in range(mag_num):
         for colname in col_names:
             fields.append(colname + str(i))
-    fields += ['X_force', 'Y_force', 'Z_force', 'indent_ID', 'X_location', 'Y_location', 'Z_location']
+    fields += ['X_force', 'Y_force', 'Z_force', 'indent_ID', 'X_location', 'Y_location']
 
-    rows_bl, rows_contact = [], []
+    bl_dict, contact_dict = [], []
 
     # i is the indent_id, and j is the sample_id
     # change to .npz file
     for i in range(len(res_bl)):
         for j in range(len(res_bl[i])):
-            res_bl[i][j].data.append(fs_bl[i][0][j][0])
-            res_bl[i][j].data.append(fs_bl[i][0][j][1])
-            res_bl[i][j].data.append(fs_bl[i][0][j][2])
-            res_bl[i][j].data.append(i)
-            res_bl[i][j].data.append(xs[i])
-            res_bl[i][j].data.append(ys[i])
-            res_bl[i][j].data.append(depth)
-            rows_bl.append(res_bl[i][j].data)
-
+            reskin_data = res_bl[i][j][2:22]
+            force_data = fs_bl[i][0][j]
+            location = [xs[i], ys[i]]
+            indent = i
+            dict = {'ReSkin Data': reskin_data, "Force Data": force_data, "Location": location, "Indent": indent}
+            bl_dict.append(dict)
 
     for i in range(len(res_contact)):
         for j in range(len(res_contact[i])):
-            res_contact[i][j].data.append(fs_contact[i][0][j][0])
-            res_contact[i][j].data.append(fs_contact[i][0][j][1])
-            res_contact[i][j].data.append(fs_contact[i][0][j][2])
-            res_contact[i][j].data.append(i)
-            res_contact[i][j].data.append(xs[i])
-            res_contact[i][j].data.append(ys[i])
-            res_contact[i][j].data.append(depth)
-            rows_contact.append(res_contact[i][j].data)
+            reskin_data = res_contact[i][j][2:22]
+            force_data = fs_contact[i][0][j]
+            location = [xs[i], ys[i]]
+            indent = i
+            dict = {'ReSkin Data': reskin_data, "Force Data": force_data, "Location": location, "Indent": indent}
+            contact_dict.append(dict)
 
+    np.savez(file_name + ".npz", bl_arr = bl_dict, cont_arr = contact_dict)
+    np.savez(file_name + "_bl.npz", bl_dict)
+    np.savez(file_name + "_contact.npz", contact_dict)
 
-    with open(file_name + "_bl.csv", 'w') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(fields)
-        csvwriter.writerows(rows_bl)
-
-    with open(file_name + "_contact.csv", 'w') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(fields)
-        csvwriter.writerows(rows_contact)
 
 def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, filename):
     robot.setOrigin(r)
 
     # Initialize movement variables
     x, y, z = 0, 0, 0
-    xmove, ymove = 2, 2
+    xmove, ymove = 8, 8
     x_indents, y_indents = int(16/xmove) + 1, int(16/ymove) + 1
 
     # Initialize data collection variables
@@ -83,7 +72,6 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, file
                 y_loc.append(y)
 
                 # Collect baseline data from ReSkin and Force sensors
-                #time.sleep(0.1)
                 res_bl.append(reskin_sensor.get_data(num_samples))
                 fs_bl.append(fs.get_data(num_samples))
 
@@ -101,7 +89,7 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, file
         x += xmove
         y += ymove
 
-    save_data_csv(res_bl, res_contact, fs_bl, fs_contact, x_loc, y_loc, depth, reskin_sensor.num_mags, filename)
+    save_data_npz(res_bl, res_contact, fs_bl, fs_contact, x_loc, y_loc, reskin_sensor.num_mags, filename)
     print("Iteration saved.")
 
 def getSingleSkinData(port, pid, origin, depths, db, fs, num_samples):
@@ -113,7 +101,8 @@ def getSingleSkinData(port, pid, origin, depths, db, fs, num_samples):
         baudrate=115200,
         burst_mode=True,
         device_id=1,
-        temp_filtered=False,
+        temp_filtered=True,
+        reskin_data_struct=False,
     )
     sensor_stream.start()
     sensor_stream.start_streaming()
