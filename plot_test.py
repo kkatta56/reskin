@@ -3,39 +3,31 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import csv
 
-# Open raw CSV file
-def openFile(filename):
-    data = []
-    with open(filename) as csvfile:
-        reader = csv.reader(csvfile)
-        for rid, row in enumerate(reader):
-            if rid == 0:
-                column_names = row
-            else:
-                desired_array = [float(numeric_string) for numeric_string in row]
-                data.append(desired_array)
-    return data, column_names
+def readData(filename):
+    # Open NPZ files
+    data = np.load(filename, allow_pickle=True)['arr_0']
 
-# Open CSV files and create dataframe
-d, col_names = openFile('datasets/normalized/port_1_depth_1.csv')
-norm_df = pd.DataFrame(d, columns=col_names)
-d, col_names = openFile('datasets/normalized/port_1_depth_2.csv')
-norm_df2 = pd.DataFrame(d, columns=col_names)
-d, col_names = openFile('datasets/normalized/port_1_depth_3.csv')
-norm_df3 = pd.DataFrame(d, columns=col_names)
+    # Populate arrays with data
+    res_data = []
+    force_data = []
+    for entry in data:
+        res_data.append(entry['ReSkin Data'])
+        force_data.append(entry['Force Data'])
+
+    return np.array(res_data), np.array(force_data)
 
 
-# Plot data
-dir = "x"
-mag_id = "2"
 
-plot_val = "B"+dir+mag_id
-#plot_val = "Z_force"
+r1, f1 = readData('datasets/normalized/port_1_depth_1.npz')
+r2, f2 = readData('datasets/normalized/port_2_depth_1.npz')
+r3, f3 = readData('datasets/normalized/port_3_depth_1.npz')
 
-ax = norm_df[0:400].plot(y=plot_val, kind="line")
-norm_df2[0:400].plot(y=plot_val, kind="line", ax=ax)
-norm_df3[0:400].plot(y=plot_val, kind="line", ax=ax)
+column = 6
 
-
+plt.plot(r1[:,column], label="Skin 1")
+plt.plot(r2[:,column], label="Skin 2")
+plt.plot(r3[:,column], label="Skin 3")
+plt.legend()
 
 plt.show()
+

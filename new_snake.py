@@ -53,7 +53,7 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, file
 
     # Initialize movement variables
     x, y, z = 0, 0, 0
-    xmove, ymove = 8, 8
+    xmove, ymove = 2, 2
     x_indents, y_indents = int(16/xmove) + 1, int(16/ymove) + 1
 
     # Initialize data collection variables
@@ -78,8 +78,8 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, file
                 # Make indentation with robot and collect contact data
                 robot.move([x, y, -depth])
                 # time.sleep(0.1)
-                res_contact.append(reskin_sensor.get_data(num_samples*4))
-                fs_contact.append(fs.get_data(num_samples*4))
+                res_contact.append(reskin_sensor.get_data(num_samples*10))
+                fs_contact.append(fs.get_data(num_samples*10))
 
                 # Finish indentation
                 robot.move([x, y, 0])
@@ -138,13 +138,13 @@ force_sensor.start_recording()
 # Set ReSkin ports, origins, and depths for each iteration
 port_names = ['/dev/ttyACM0','/dev/ttyACM1','/dev/ttyACM2']
 force_sensor_height = 13
-origins = [[177.29611206054688, -197.7755126953125, -87.25672912597656+force_sensor_height],
-           [177.29611206054688, -96.56216430664062, -87.25672912597656+force_sensor_height],
+origins = [[178.29611206054688, -196.7755126953125, -87.25672912597656+force_sensor_height],
+           [178.29611206054688, -95.56216430664062, -87.25672912597656+force_sensor_height],
            [178.79611206054688, 77.446216430664062, -87.25672912597656+force_sensor_height]]
-depths = [5, 7, 9]
+depths = [7, 9]
 
 # Iterate over each port/origin
 for pid,port in enumerate(port_names):
-    getSingleSkinData(port, pid, origins[pid], depths, db, force_sensor, 100)
+    getSingleSkinData(port, pid, origins[pid], depths, db, force_sensor, 10)
 
 force_sensor.pause_recording()

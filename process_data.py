@@ -17,61 +17,91 @@ def openFile(filename):
     return data, column_names
 
 # Find the baselines for each indentation
-def findBaselines(df):
-    baselines = []
-    for indent_ID in range(int(df['indent_ID'].max())+1):
-        sample_vals = df.loc[df['indent_ID'] == indent_ID]
-        bl = sample_vals.mean()
-        # make the baseline values for indent_ID, x_loc, y_loc, z_loc = 0
-        # in order to preserve those data points
-        bl[23:27] = [0,0,0,0]
-        baselines.append(bl)
-    return baselines
+def findBaselines(raw_data):
+    # Initialize variables
+    res_bls, force_bls = [], []
+    j = 0
+
+    # Iterate through each indent
+    for i in range(raw_data[-1]['Indent'] + 1):
+        indent_res_data, indent_force_data = [], []
+
+        # Group data of the same indent together
+        while i == raw_data[j]['Indent']:
+            indent_res_data.append(raw_data[j]['ReSkin Data'])
+            indent_force_data.append(raw_data[j]['Force Data'])
+            j += 1
+            if j == len(raw_data):
+                break
+
+        # Find the mean data of each indent in order to get baseline
+        indent_res_data, indent_force_data = np.array(indent_res_data), np.array(indent_force_data)
+        res_bls.append(np.mean(indent_res_data, axis=0))
+        force_bls.append(np.mean(indent_force_data, axis=0))
+
+    return res_bls, force_bls
 
 # Process the data for each of the baselines
-def processData(df,bls):
-    # Drop T values
-    df.drop('T0', axis=1, inplace=True)
-    df.drop('T1', axis=1, inplace=True)
-    df.drop('T2', axis=1, inplace=True)
-    df.drop('T3', axis=1, inplace=True)
-    df.drop('T4', axis=1, inplace=True)
+def processData(raw_data, res_bls, force_bls):
+    # Drop temp values
+    temp_indices = [0,4,8,12,16]
 
     # Subtract from baseline
-    for i in range(len(df)):
-        ind_id = int(df.loc[i].indent_ID)
-        df.loc[i] -= bls[ind_id]
-    return df
+    for entry in raw_data:
+        entry['ReSkin Data'] -= res_bls[entry['Indent']]
+        entry['ReSkin Data'] = np.delete(entry['ReSkin Data'], temp_indices)
+        entry['Force Data'] -= force_bls[entry['Indent']]
 
-def normalize(df):
-    df.iloc[:, 0:15] = (df.iloc[:, 0:15] - df.iloc[:, 0:15].min()) / (df.iloc[:, 0:15].max() - df.iloc[:, 0:15].min())
-    return df
+    return raw_contact_data
+
+def normalize(data):
+    # Initialize empty arrays
+    res_data = []
+    force_data = []
+
+    # Populate arrays with data
+    for entry in data:
+        res_data.append(entry['ReSkin Data'])
+        force_data.append(entry['Force Data'])
+    res_data = np.array(res_data)
+    force_data = np.array(force_data)
+
+    # Find the minimums and maximums for each column
+    res_mins, res_maxs = res_data.min(axis=0), res_data.max(axis=0)
+    force_mins, force_maxs = force_data.min(axis=0), force_data.max(axis=0)
+
+    # Normalize Data
+    for entry in data:
+        entry['ReSkin Data'] = (2 * (entry['ReSkin Data'] - res_mins) / (res_maxs - res_mins)) - 1
+        entry['Force Data'] = (2 * (entry['Force Data'] - force_mins) / (force_maxs - force_mins)) - 1
+
+    return data
 
 # Input number of depths/sensors
 start_port = 1
 end_port = 3
 start_depth = 1
-end_depth = 3
+end_depth = 2
 
 # Run process over all raw data files
 for i in range(start_port, end_port+1):
     for j in range(start_depth, end_depth+1):
 
         # Open .csv/.npy files and create dataframe
-        d_bl, col_names_bl = openFile('datasets/raw/port_'+str(i)+'_depth_'+str(j)+'_bl.csv')
-        df_bl = pd.DataFrame(d_bl, columns=col_names_bl)
+        a = np.load('datasets/raw/port_'+str(i)+'_depth_'+str(j)+'.npz', allow_pickle=True)
+        raw_baseline_data = a['bl_arr']
+        raw_contact_data = a['cont_arr']
 
         # Find baselines
-        bls = findBaselines(df_bl)
+        res_bls, force_bls = findBaselines(raw_baseline_data)
 
-        # Process data
-        d, col_names = openFile('datasets/raw/port_' + str(i) + '_depth_' + str(j) + '_contact.csv')
-        df = pd.DataFrame(d, columns=col_names)
-        proc_df = processData(df, bls)
-        proc_df.to_csv('datasets/processed/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8', index=False)
+        # Process and save data
+        processed_data = processData(raw_contact_data, res_bls, force_bls)
+        np.savez('datasets/processed/port_' + str(i) + '_depth_' + str(j) + '.npz', processed_data)
 
-        norm_df = normalize(proc_df)
-        norm_df.to_csv('datasets/normalized/port_' + str(i) + '_depth_' + str(j) + '.csv', encoding='utf-8',
-                       index=False)
+
+        # Normalize and save data
+        normalized_data = normalize(processed_data)
+        np.savez('datasets/normalized/port_' + str(i) + '_depth_' + str(j) + '.npz', normalized_data)
 
         print('Processed raw/port_'+str(i)+'_depth_'+str(j))
