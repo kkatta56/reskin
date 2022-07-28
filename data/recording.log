@@ -350,3 +350,49 @@
 [07-26 14:08:39] UDP quit, polling profile [0,0,0,0,0,0,0,0,0,0,896]
 [07-26 14:08:39] Sensor quit, _unnamedTask<0>, polling profile [32376,111909,32117,0,0,0,0,0,0,0,8]
 [07-26 14:08:39] Quit recording
+[07-27 15:36:48] Main process priority: normal
+[07-27 15:36:48] UDP start, pid 8862, priority normal
+[07-27 15:36:49] Sensor start, pid 8860, priority normal
+[07-27 15:39:45] Sensor stop, name 8860
+[07-27 15:39:47] UDP quit, polling profile [0,0,0,0,0,0,0,0,0,0,895]
+[07-27 15:39:47] Sensor quit, _unnamedTask<0>, polling profile [34461,107443,34181,0,0,0,0,0,0,0,8]
+[07-27 15:39:47] Quit recording
+[07-27 15:52:15] Main process priority: normal
+[07-27 15:52:15] UDP start, pid 10351, priority normal
+[07-27 15:52:16] Sensor start, pid 10349, priority normal
+[07-27 15:53:30] Sensor stop, name 10349
+[07-27 15:53:31] UDP quit, polling profile [0,0,0,0,0,0,0,0,0,0,380]
+[07-27 15:53:31] Sensor quit, _unnamedTask<0>, polling profile [14035,45639,13930,0,0,0,0,0,0,0,5]
+[07-27 15:53:31] Quit recording
+[07-27 15:56:25] Main process priority: normal
+[07-27 15:56:25] UDP start, pid 10512, priority normal
+[07-27 15:56:27] Sensor start, pid 10510, priority normal
+[07-27 15:57:30] Main process priority: normal
+[07-27 15:57:30] UDP start, pid 10549, priority normal
+[07-27 15:57:31] Sensor start, pid 10547, priority normal
+[07-27 15:58:55] Main process priority: normal
+[07-27 15:58:55] UDP start, pid 10592, priority normal
+[07-27 15:58:56] Sensor start, pid 10590, priority normal
+[07-27 16:00:27] Main process priority: normal
+[07-27 16:00:27] UDP start, pid 10632, priority normal
+[07-27 16:00:28] Sensor start, pid 10630, priority normal
+[07-27 16:01:17] Main process priority: normal
+[07-27 16:01:17] UDP start, pid 10661, priority normal
+[07-27 16:01:18] Sensor start, pid 10659, priority normal
+[07-27 16:15:00] Sensor stop, name 10659
+[07-27 16:15:06] UDP quit, polling profile [0,0,0,0,0,0,0,0,0,0,4141]
+[07-27 16:15:06] Sensor quit, _unnamedTask<0>, polling profile [156248,512089,153490,57,52,36,28,44,8,12,37]
+[07-27 16:15:06] Quit recording
+[07-28 11:18:01] Main process priority: normal
+[07-28 11:18:01] UDP start, pid 5196, priority normal
+[07-28 11:18:03] Sensor start, pid 5194, priority normal
+[07-28 12:09:01] Main process priority: normal
+[07-28 12:09:01] UDP start, pid 6408, priority normal
+[07-28 12:09:03] Sensor start, pid 6406, priority normal
+[07-28 12:11:03] Main process priority: normal
+[07-28 12:11:03] UDP start, pid 6522, priority normal
+[07-28 12:11:04] Sensor start, pid 6520, priority normal
+[07-28 12:31:04] Sensor stop, name 6520
+[07-28 12:31:11] UDP quit, polling profile [0,0,0,0,0,0,0,0,0,0,6037]
+[07-28 12:31:11] Sensor quit, _unnamedTask<0>, polling profile [229590,742336,227663,12,8,1,2,5,0,0,17]
+[07-28 12:31:11] Quit recording
