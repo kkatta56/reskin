@@ -12,7 +12,6 @@ from utils.dobot import *
 from reskin_sensor import ReSkinProcess
 from utils.force_sensor import ForceSensor, _ForceSensorSetting
 
-
 def save_data_npz(res_bl, res_contact, fs_bl, fs_contact, xs, ys, mag_num, file_name):
     col_names = ['T', 'Bx', 'By', 'Bz']
     fields = []
@@ -44,9 +43,6 @@ def save_data_npz(res_bl, res_contact, fs_bl, fs_contact, xs, ys, mag_num, file_
             contact_dict.append(dict)
 
     np.savez(file_name + ".npz", bl_arr = bl_dict, cont_arr = contact_dict)
-    np.savez(file_name + "_bl.npz", bl_dict)
-    np.savez(file_name + "_contact.npz", contact_dict)
-
 
 def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, filename):
     robot.setOrigin(r)
@@ -141,7 +137,7 @@ force_sensor_height = 13
 origins = [[178.29611206054688, -196.7755126953125, -87.25672912597656+force_sensor_height],
            [178.29611206054688, -95.56216430664062, -87.25672912597656+force_sensor_height],
            [178.79611206054688, 77.446216430664062, -87.25672912597656+force_sensor_height]]
-depths = [7, 9]
+depths = [5, 7, 9]
 
 # Iterate over each port/origin
 for pid,port in enumerate(port_names):

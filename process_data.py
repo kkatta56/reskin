@@ -81,7 +81,7 @@ def normalize(data):
 start_port = 1
 end_port = 3
 start_depth = 1
-end_depth = 2
+end_depth = 3
 
 # Run process over all raw data files
 for i in range(start_port, end_port+1):

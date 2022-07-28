@@ -36,21 +36,7 @@ class MLP(nn.Module):
     def forward(self, x):
         return self.layers(x)
 
-def readData(filename):
-    # Open NPZ files
-    data = np.load(filename, allow_pickle=True)['arr_0']
-
-    # Populate arrays with data
-    res_data = []
-    force_data = []
-    for entry in data:
-        res_data.append(entry['ReSkin Data'])
-        force_data.append(entry['Force Data'])
-
-    # Return ReSkin Data and Force Data arrays
-    return np.array(res_data), np.array(force_data)
-
-def train_model(train_loader):
+def train_model(train_loader, plot = False):
     # Initialize the MLP
     mlp = MLP()
 
@@ -59,6 +45,7 @@ def train_model(train_loader):
     optimizer = torch.optim.Adam(mlp.parameters(), lr=1e-4)
 
     # Run the training loop
+    losses = []
     for epoch in range(0, 5):  # 5 epochs at maximum
 
         # Print epoch
@@ -91,6 +78,7 @@ def train_model(train_loader):
 
             # Print statistics
             current_loss += loss.item()
+            losses.append(current_loss)
             if i % 10 == 0:
                 print('Loss after batch %5d: %.3f' %
                       (i + 1, current_loss))
@@ -98,6 +86,12 @@ def train_model(train_loader):
 
     # Process is complete.
     print('Training process has finished.')
+
+    # Plot Loss vs Epoch
+    if plot:
+        plt.plot(losses)
+        plt.show()
+
     return mlp
 
 def test_model(test_loader, mlp, tolerance, f_tolerance):
@@ -130,6 +124,21 @@ def test_model(test_loader, mlp, tolerance, f_tolerance):
         print('Accuracy of the network on the test values: {}%'.format(100 * tot_correct / total))
         return [100 * loc_correct / total, 100 * force_correct / total, 100 * tot_correct / total]
 
+def readData(filename):
+    # Open NPZ files
+    data = np.load(filename, allow_pickle=True)['arr_0']
+
+    # Populate arrays with data
+    res_data = []
+    force_data = []
+    for entry in data:
+        res_data.append(entry['ReSkin Data'])
+        force_data.append(entry['Force Data'])
+
+    # Return ReSkin Data and Force Data arrays
+    return np.array(res_data), np.array(force_data)
+
+
 def split_dataset(train_proportion, full_dataset):
     train_size = int(train_proportion * len(full_dataset))
     test_size = len(full_dataset) - train_size
@@ -160,24 +169,30 @@ def plotPredVsTrue(model, test_loader, category):
 
 
 ############ Train with multiple datasets / Test with multiple datasets ##################
-train_urls = ['datasets/normalized/port_1_depth_1.npz',
-              'datasets/normalized/port_1_depth_2.npz',
-              'datasets/normalized/port_2_depth_1.npz',
-              'datasets/normalized/port_2_depth_2.npz',
-              ]
-test_urls = ['datasets/normalized/port_3_depth_1.npz',
-             'datasets/normalized/port_3_depth_2.npz'
-             ]
-train_dataset = combine_datasets(train_urls)
-test_dataset = combine_datasets(test_urls)
+#train_urls = ['datasets/normalized/port_1_depth_1.npz',
+#              'datasets/normalized/port_1_depth_2.npz',
+#              'datasets/normalized/port_2_depth_1.npz',
+#              'datasets/normalized/port_2_depth_2.npz',
+#              ]
+#test_urls = ['datasets/normalized/port_3_depth_1.npz',
+#             'datasets/normalized/port_3_depth_2.npz'
+#             ]
+#train_dataset = combine_datasets(train_urls)
+#test_dataset = combine_datasets(test_urls)
 
 ######################### Train and test on same datasets #################################
-#urls = ['datasets/normalized/port_1_depth_1.npz',
-#        'datasets/normalized/port_1_depth_2.npz',
-#        'datasets/normalized/port_1_depth_3.npz',
-#       ]
-#full_dataset = combine_datasets(urls)
-#train_dataset, test_dataset = split_dataset(0.9, full_dataset)
+urls = ['datasets/normalized/port_1_depth_1.npz',
+        'datasets/normalized/port_1_depth_2.npz',
+        'datasets/normalized/port_1_depth_3.npz',
+        'datasets/normalized/port_2_depth_1.npz',
+        'datasets/normalized/port_2_depth_2.npz',
+        'datasets/normalized/port_2_depth_3.npz',
+        'datasets/normalized/port_3_depth_1.npz',
+        'datasets/normalized/port_3_depth_2.npz',
+        'datasets/normalized/port_3_depth_3.npz',
+        ]
+full_dataset = combine_datasets(urls)
+train_dataset, test_dataset = split_dataset(0.9, full_dataset)
 
 
 batch_size = 10
@@ -189,6 +204,6 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           shuffle=True)
 tolerance = 1
 f_tolerance = 0.2
-model = train_model(train_loader)
+model = train_model(train_loader, plot=True)
 #plotPredVsTrue(model, test_loader, 2)
 print(test_model(test_loader, model, tolerance, f_tolerance))
