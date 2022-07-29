@@ -146,16 +146,16 @@ def plotPredVsTrue(model, test_loader, category):
 time_string = '07_29_2022_12:39:26'
 
 ############ Train with multiple datasets / Test with multiple datasets ##################
-train_urls = ['datasets/'+time_string+'/normalized/port_1_depth_1.npz',
-              'datasets/'+time_string+'/normalized/port_1_depth_2.npz',
-              'datasets/'+time_string+'/normalized/port_1_depth_2.npz',
-              'datasets/'+time_string+'/normalized/port_2_depth_1.npz',
+train_urls = ['datasets/'+time_string+'/normalized/port_2_depth_1.npz',
               'datasets/'+time_string+'/normalized/port_2_depth_2.npz',
-              'datasets/'+time_string+'/normalized/port_2_depth_3.npz',
+              'datasets/'+time_string+'/normalized/port_2_depth_2.npz',
+              'datasets/'+time_string+'/normalized/port_3_depth_1.npz',
+              'datasets/'+time_string+'/normalized/port_3_depth_2.npz',
+              'datasets/'+time_string+'/normalized/port_3_depth_3.npz',
               ]
-test_urls = ['datasets/'+time_string+'/normalized/port_3_depth_1.npz',
-             'datasets/'+time_string+'/normalized/port_3_depth_2.npz',
-             'datasets/'+time_string+'/normalized/port_3_depth_3.npz'
+test_urls = ['datasets/'+time_string+'/normalized/port_1_depth_1.npz',
+             'datasets/'+time_string+'/normalized/port_1_depth_2.npz',
+             'datasets/'+time_string+'/normalized/port_1_depth_3.npz'
              ]
 train_dataset = combine_datasets(train_urls)
 test_dataset = combine_datasets(test_urls)
@@ -182,8 +182,8 @@ train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=batch_size,
                                           shuffle=True)
-tolerances = [0.5, 1, 1.5, 2]
-f_tolerances = [0.1, 0.2, 0.5, 1]
-model = train_model(train_loader, plot=True)
+tolerances = [2, 1, 0.5]
+f_tolerances = [0.5, 0.2]
+model = train_model(train_loader)
 #plotPredVsTrue(model, test_loader, 2)
-print(test_model(test_loader, model, tolerances, f_tolerances))
+print(np.array(test_model(test_loader, model, tolerances, f_tolerances)))
