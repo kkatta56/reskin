@@ -17,16 +17,12 @@ def readData(filename):
     # Return ReSkin Data and Force Data arrays
     return np.array(res_data), np.array(force_data)
 
+time_string = '07_29_2022_12:39:26'
+r1, f1 = readData('datasets/'+time_string+'/normalized/port_1_depth_1.npz')
+r2, f2 = readData('datasets/'+time_string+'/normalized/port_2_depth_1.npz')
+r3, f3 = readData('datasets/'+time_string+'/normalized/port_3_depth_1.npz')
 
-r1, f1 = readData('datasets/normalized/port_1_depth_1.npz')
-r2, f2 = readData('datasets/normalized/port_2_depth_1.npz')
-r3, f3 = readData('datasets/normalized/port_3_depth_1.npz')
-
-
-print(f1)
-
-
-column = 6
+column = 1
 plt.plot(r1[:,column], label="Skin 1")
 plt.plot(r2[:,column], label="Skin 2")
 plt.plot(r3[:,column], label="Skin 3")

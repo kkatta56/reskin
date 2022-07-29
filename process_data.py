@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import csv
+import os
+
 
 # Open raw CSV file
 def openFile(filename):
@@ -28,8 +30,8 @@ def findBaselines(raw_data):
 
         # Group data of the same indent together
         while i == raw_data[j]['Indent']:
-            indent_res_data.append(raw_data[j]['ReSkin Data'])
-            indent_force_data.append(raw_data[j]['Force Data'])
+            indent_res_data.append(raw_data[j]['ReSkin_Data'])
+            indent_force_data.append(raw_data[j]['Force_Data'])
             j += 1
             if j == len(raw_data):
                 break
@@ -77,18 +79,24 @@ def normalize(data):
 
     return data
 
-# Input number of depths/sensors
+# Input number of depths/sensors and date/time
+time_string = '07_29_2022_12:39:26'
 start_port = 1
 end_port = 3
 start_depth = 1
 end_depth = 3
+
+# Make new directories
+dataset_path = '/home/rbhirang/code/kaushik_reskin/reskin/'
+os.mkdir(dataset_path + 'datasets/' + time_string + '/processed/')
+os.mkdir(dataset_path + 'datasets/' + time_string + '/normalized/')
 
 # Run process over all raw data files
 for i in range(start_port, end_port+1):
     for j in range(start_depth, end_depth+1):
 
         # Open .csv/.npy files and create dataframe
-        a = np.load('datasets/raw/port_'+str(i)+'_depth_'+str(j)+'.npz', allow_pickle=True)
+        a = np.load('datasets/'+time_string+'/raw/port_'+str(i)+'_depth_'+str(j)+'.npz', allow_pickle=True)
         raw_baseline_data = a['bl_arr']
         raw_contact_data = a['cont_arr']
 
@@ -97,11 +105,11 @@ for i in range(start_port, end_port+1):
 
         # Process and save data
         processed_data = processData(raw_contact_data, res_bls, force_bls)
-        np.savez('datasets/processed/port_' + str(i) + '_depth_' + str(j) + '.npz', processed_data)
+        np.savez('datasets/'+time_string+'/processed/port_'+str(i)+'_depth_'+str(j)+'.npz', processed_data)
 
 
         # Normalize and save data
         normalized_data = normalize(processed_data)
-        np.savez('datasets/normalized/port_' + str(i) + '_depth_' + str(j) + '.npz', normalized_data)
+        np.savez('datasets/'+time_string+'/normalized/port_'+str(i)+'_depth_'+str(j)+'.npz', normalized_data)
 
-        print('Processed raw/port_'+str(i)+'_depth_'+str(j))
+        print('Processed raw/'+time_string+'/port_'+str(i)+'_depth_'+str(j))

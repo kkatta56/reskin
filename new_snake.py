@@ -4,9 +4,9 @@
 
 import numpy as np
 import argparse
-import time
+from datetime import datetime
 import serial
-import csv
+import os
 
 from utils.dobot import *
 from reskin_sensor import ReSkinProcess
@@ -30,7 +30,7 @@ def save_data_npz(res_bl, res_contact, fs_bl, fs_contact, xs, ys, mag_num, file_
             force_data = fs_bl[i][0][j]
             location = [xs[i], ys[i]]
             indent = i
-            dict = {'ReSkin Data': reskin_data, "Force Data": force_data, "Location": location, "Indent": indent}
+            dict = {'ReSkin_Data': reskin_data, "Force_Data": force_data, "Location": location, "Indent": indent}
             bl_dict.append(dict)
 
     for i in range(len(res_contact)):
@@ -42,7 +42,7 @@ def save_data_npz(res_bl, res_contact, fs_bl, fs_contact, xs, ys, mag_num, file_
             dict = {'ReSkin Data': reskin_data, "Force Data": force_data, "Location": location, "Indent": indent}
             contact_dict.append(dict)
 
-    np.savez(file_name + ".npz", bl_arr = bl_dict, cont_arr = contact_dict)
+    np.savez(file_name, bl_arr = bl_dict, cont_arr = contact_dict)
 
 def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, filename):
     robot.setOrigin(r)
@@ -88,7 +88,7 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, file
     save_data_npz(res_bl, res_contact, fs_bl, fs_contact, x_loc, y_loc, reskin_sensor.num_mags, filename)
     print("Iteration saved.")
 
-def getSingleSkinData(port, pid, origin, depths, db, fs, num_samples):
+def getSingleSkinData(port, pid, origin, depths, db, fs, num_samples, directory_path):
     # Initialize ReSkin sensor
     print("Using port: " + port)
     sensor_stream = ReSkinProcess(
@@ -104,9 +104,10 @@ def getSingleSkinData(port, pid, origin, depths, db, fs, num_samples):
     sensor_stream.start_streaming()
 
     # Start data collection at various depths for a particular ReSkin sensor
+
     for i, d in enumerate(depths):
-        getSingleIterationData(db, sensor_stream, fs, origin, d, num_samples,
-                          "datasets/raw/port_" + str(pid + 1) + "_depth_" + str(i + 1))
+        getSingleIterationData(db, sensor_stream, fs, origin, d, num_samples, directory_path +
+                               'port_' + str(pid + 1) + '_depth_' + str(i + 1) + '.npz')
 
     # Stop sensor stream
     sensor_stream.pause_streaming()
@@ -134,13 +135,22 @@ force_sensor.start_recording()
 # Set ReSkin ports, origins, and depths for each iteration
 port_names = ['/dev/ttyACM0','/dev/ttyACM1','/dev/ttyACM2']
 force_sensor_height = 13
-origins = [[178.29611206054688, -196.7755126953125, -87.25672912597656+force_sensor_height],
-           [178.29611206054688, -95.56216430664062, -87.25672912597656+force_sensor_height],
+origins = [[177.29611206054688, -197.7755126953125, -87.25672912597656+force_sensor_height],
+           [177.29611206054688, -96.56216430664062, -87.25672912597656+force_sensor_height],
            [178.79611206054688, 77.446216430664062, -87.25672912597656+force_sensor_height]]
 depths = [5, 7, 9]
 
+# Create data directories
+time_string = datetime.now().strftime("%m_%d_%Y_%H:%M:%S")
+dataset_path = '/home/rbhirang/code/kaushik_reskin/reskin/'
+os.mkdir(dataset_path + 'datasets/' + time_string)
+directory_path = dataset_path + 'datasets/' + time_string + '/raw/'
+os.mkdir(directory_path)
+os.mkdir(dataset_path + 'datasets/' + time_string + '/processed/')
+os.mkdir(dataset_path + 'datasets/' + time_string + '/normalized/')
+
 # Iterate over each port/origin
 for pid,port in enumerate(port_names):
-    getSingleSkinData(port, pid, origins[pid], depths, db, force_sensor, 10)
+    getSingleSkinData(port, pid, origins[pid], depths, db, force_sensor, 10, directory_path)
 
 force_sensor.pause_recording()
