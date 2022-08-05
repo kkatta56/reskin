@@ -109,8 +109,8 @@ def readData(filename):
     res_data = []
     force_data = []
     for entry in data:
-        res_data.append(entry['ReSkin Data'])
-        force_data.append(entry['Force Data'])
+        res_data.append(entry['ReSkin_Data'])
+        force_data.append(entry['Force_Data'])
 
     # Return ReSkin Data and Force Data arrays
     return np.array(res_data), np.array(force_data)
@@ -143,19 +143,19 @@ def plotPredVsTrue(model, test_loader, category):
     plt.ylabel('Predicted Value')
     plt.show()
 
-time_string = '07_29_2022_12:39:26'
+time_string = '08_05_2022_10:31:21'
 
 ############ Train with multiple datasets / Test with multiple datasets ##################
-train_urls = ['datasets/'+time_string+'/normalized/port_2_depth_1.npz',
+train_urls = ['datasets/'+time_string+'/normalized/port_1_depth_1.npz',
+              'datasets/'+time_string+'/normalized/port_1_depth_2.npz',
+              'datasets/'+time_string+'/normalized/port_1_depth_3.npz',
+              'datasets/'+time_string+'/normalized/port_2_depth_1.npz',
               'datasets/'+time_string+'/normalized/port_2_depth_2.npz',
-              'datasets/'+time_string+'/normalized/port_2_depth_2.npz',
-              'datasets/'+time_string+'/normalized/port_3_depth_1.npz',
-              'datasets/'+time_string+'/normalized/port_3_depth_2.npz',
-              'datasets/'+time_string+'/normalized/port_3_depth_3.npz',
+              'datasets/'+time_string+'/normalized/port_2_depth_3.npz',
               ]
-test_urls = ['datasets/'+time_string+'/normalized/port_1_depth_1.npz',
-             'datasets/'+time_string+'/normalized/port_1_depth_2.npz',
-             'datasets/'+time_string+'/normalized/port_1_depth_3.npz'
+test_urls = ['datasets/'+time_string+'/normalized/port_3_depth_1.npz',
+             'datasets/'+time_string+'/normalized/port_3_depth_2.npz',
+             'datasets/'+time_string+'/normalized/port_3_depth_3.npz'
              ]
 train_dataset = combine_datasets(train_urls)
 test_dataset = combine_datasets(test_urls)

@@ -39,7 +39,7 @@ def save_data_npz(res_bl, res_contact, fs_bl, fs_contact, xs, ys, mag_num, file_
             force_data = fs_contact[i][0][j]
             location = [xs[i], ys[i]]
             indent = i
-            dict = {'ReSkin Data': reskin_data, "Force Data": force_data, "Location": location, "Indent": indent}
+            dict = {'ReSkin_Data': reskin_data, "Force_Data": force_data, "Location": location, "Indent": indent}
             contact_dict.append(dict)
 
     np.savez(file_name, bl_arr = bl_dict, cont_arr = contact_dict)
@@ -132,13 +132,18 @@ fs_settings = _ForceSensorSetting(device_name_prefix="Dev",
 force_sensor = ForceSensor(fs_settings)
 force_sensor.start_recording()
 
+##########################################################################################################
+##########################################################################################################
 # Set ReSkin ports, origins, and depths for each iteration
-port_names = ['/dev/ttyACM0','/dev/ttyACM1','/dev/ttyACM2']
+port_names = ['/dev/ttyACM0', '/dev/ttyACM1','/dev/ttyACM2']
 force_sensor_height = 13
 origins = [[177.29611206054688, -197.7755126953125, -87.25672912597656+force_sensor_height],
            [177.29611206054688, -96.56216430664062, -87.25672912597656+force_sensor_height],
            [178.79611206054688, 77.446216430664062, -87.25672912597656+force_sensor_height]]
 depths = [5, 7, 9]
+##########################################################################################################
+##########################################################################################################
+
 
 # Create data directories
 time_string = datetime.now().strftime("%m_%d_%Y_%H:%M:%S")

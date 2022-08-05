@@ -50,9 +50,9 @@ def processData(raw_data, res_bls, force_bls):
 
     # Subtract from baseline
     for entry in raw_data:
-        entry['ReSkin Data'] -= res_bls[entry['Indent']]
-        entry['ReSkin Data'] = np.delete(entry['ReSkin Data'], temp_indices)
-        entry['Force Data'] -= force_bls[entry['Indent']]
+        entry['ReSkin_Data'] -= res_bls[entry['Indent']]
+        entry['ReSkin_Data'] = np.delete(entry['ReSkin_Data'], temp_indices)
+        entry['Force_Data'] -= force_bls[entry['Indent']]
 
     return raw_contact_data
 
@@ -63,8 +63,8 @@ def normalize(data):
 
     # Populate arrays with data
     for entry in data:
-        res_data.append(entry['ReSkin Data'])
-        force_data.append(entry['Force Data'])
+        res_data.append(entry['ReSkin_Data'])
+        force_data.append(entry['Force_Data'])
     res_data = np.array(res_data)
     force_data = np.array(force_data)
 
@@ -74,26 +74,22 @@ def normalize(data):
 
     # Normalize Data
     for entry in data:
-        entry['ReSkin Data'] = (2 * (entry['ReSkin Data'] - res_mins) / (res_maxs - res_mins)) - 1
-        entry['Force Data'] = (2 * (entry['Force Data'] - force_mins) / (force_maxs - force_mins)) - 1
+        entry['ReSkin_Data'] = (2 * (entry['ReSkin_Data'] - res_mins) / (res_maxs - res_mins)) - 1
+        entry['Force_Data'] = (2 * (entry['Force_Data'] - force_mins) / (force_maxs - force_mins)) - 1
 
     return data
 
 # Input number of depths/sensors and date/time
-time_string = '07_29_2022_12:39:26'
-start_port = 1
-end_port = 3
-start_depth = 1
-end_depth = 3
+time_string = '08_05_2022_10:31:21'
+num_ports = 3
+num_depths = 3
 
 # Make new directories
 dataset_path = '/home/rbhirang/code/kaushik_reskin/reskin/'
-os.mkdir(dataset_path + 'datasets/' + time_string + '/processed/')
-os.mkdir(dataset_path + 'datasets/' + time_string + '/normalized/')
 
 # Run process over all raw data files
-for i in range(start_port, end_port+1):
-    for j in range(start_depth, end_depth+1):
+for i in range(1, num_ports+1):
+    for j in range(1, num_depths+1):
 
         # Open .csv/.npy files and create dataframe
         a = np.load('datasets/'+time_string+'/raw/port_'+str(i)+'_depth_'+str(j)+'.npz', allow_pickle=True)
