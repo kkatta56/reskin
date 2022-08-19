@@ -80,9 +80,9 @@ def normalize(data):
     return data
 
 # Input number of depths/sensors and date/time
-time_string = '08_05_2022_10:31:21'
+time_string = 'magnet_switch_2_and_3'
 num_ports = 3
-num_depths = 3
+num_depths = 1
 
 # Make new directories
 dataset_path = '/home/rbhirang/code/kaushik_reskin/reskin/'
@@ -108,4 +108,4 @@ for i in range(1, num_ports+1):
         normalized_data = normalize(processed_data)
         np.savez('datasets/'+time_string+'/normalized/port_'+str(i)+'_depth_'+str(j)+'.npz', normalized_data)
 
-        print('Processed raw/'+time_string+'/port_'+str(i)+'_depth_'+str(j))
+        print('Processed datasets/'+time_string+'/raw/port_'+str(i)+'_depth_'+str(j)+'.npz')

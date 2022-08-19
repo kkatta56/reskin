@@ -143,33 +143,21 @@ def plotPredVsTrue(model, test_loader, category):
     plt.ylabel('Predicted Value')
     plt.show()
 
-time_string = '08_05_2022_10:31:21'
+time_string = 'magnet_switch_2_and_3'
 
 ############ Train with multiple datasets / Test with multiple datasets ##################
 train_urls = ['datasets/'+time_string+'/normalized/port_1_depth_1.npz',
-              'datasets/'+time_string+'/normalized/port_1_depth_2.npz',
-              'datasets/'+time_string+'/normalized/port_1_depth_3.npz',
               'datasets/'+time_string+'/normalized/port_2_depth_1.npz',
-              'datasets/'+time_string+'/normalized/port_2_depth_2.npz',
-              'datasets/'+time_string+'/normalized/port_2_depth_3.npz',
               ]
 test_urls = ['datasets/'+time_string+'/normalized/port_3_depth_1.npz',
-             'datasets/'+time_string+'/normalized/port_3_depth_2.npz',
-             'datasets/'+time_string+'/normalized/port_3_depth_3.npz'
              ]
 train_dataset = combine_datasets(train_urls)
 test_dataset = combine_datasets(test_urls)
 
 ######################### Train and test on same datasets #################################
 #urls = ['datasets/'+time_string+'/normalized/port_1_depth_1.npz',
-#        'datasets/'+time_string+'/normalized/port_1_depth_2.npz',
-#        'datasets/'+time_string+'/normalized/port_1_depth_3.npz',
 #        'datasets/'+time_string+'/normalized/port_2_depth_1.npz',
-#        'datasets/'+time_string+'/normalized/port_2_depth_2.npz',
-#        'datasets/'+time_string+'/normalized/port_2_depth_3.npz',
 #        'datasets/'+time_string+'/normalized/port_3_depth_1.npz',
-#        'datasets/'+time_string+'/normalized/port_3_depth_2.npz',
-#        'datasets/'+time_string+'/normalized/port_3_depth_3.npz',
 #        ]
 #full_dataset = combine_datasets(urls)
 #train_dataset, test_dataset = split_dataset(0.9, full_dataset)

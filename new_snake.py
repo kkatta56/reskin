@@ -49,7 +49,7 @@ def getSingleIterationData(robot, reskin_sensor, fs, r, depth, num_samples, file
 
     # Initialize movement variables
     x, y, z = 0, 0, 0
-    xmove, ymove = 2, 2
+    xmove, ymove = 4, 4
     x_indents, y_indents = int(16/xmove) + 1, int(16/ymove) + 1
 
     # Initialize data collection variables
@@ -135,18 +135,19 @@ force_sensor.start_recording()
 ##########################################################################################################
 ##########################################################################################################
 # Set ReSkin ports, origins, and depths for each iteration
-port_names = ['/dev/ttyACM0', '/dev/ttyACM1','/dev/ttyACM2']
+port_names = ['/dev/ttyACM0','/dev/ttyACM1','/dev/ttyACM2']
 force_sensor_height = 13
-origins = [[177.29611206054688, -197.7755126953125, -87.25672912597656+force_sensor_height],
-           [177.29611206054688, -96.56216430664062, -87.25672912597656+force_sensor_height],
-           [178.79611206054688, 77.446216430664062, -87.25672912597656+force_sensor_height]]
-depths = [5, 7, 9]
+# [east-west, south-north, down-up]
+origins = [[178.00, -196.75, -87.25 + force_sensor_height],
+           [178.00, -95.25, -87.25 + force_sensor_height],
+           [178.50, 78.50, -87.25 + force_sensor_height]]
+depths = [7]
 ##########################################################################################################
 ##########################################################################################################
 
 
 # Create data directories
-time_string = datetime.now().strftime("%m_%d_%Y_%H:%M:%S")
+time_string = datetime.now().strftime("%m_%d_%Y_%H:%M")
 dataset_path = '/home/rbhirang/code/kaushik_reskin/reskin/'
 os.mkdir(dataset_path + 'datasets/' + time_string)
 directory_path = dataset_path + 'datasets/' + time_string + '/raw/'

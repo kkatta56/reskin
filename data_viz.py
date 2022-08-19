@@ -19,46 +19,30 @@ def readData(filename):
     # Return ReSkin Data and Force Data arrays
     return np.array(res_data), np.array(force_data)
 
-# Read data
-time_string = '08_04_2022_15:10:38'
-r1, f1 = readData('datasets/'+time_string+'/normalized/port_1_depth_1.npz')
-r2, f2 = readData('datasets/'+time_string+'/normalized/port_2_depth_1.npz')
-r3, f3 = readData('datasets/'+time_string+'/normalized/port_3_depth_1.npz')
+var = 'magnet'
+port = 2
+data_type = 'normalized'
+r_b2s2, f_b2s2 = readData('datasets/'+var+'_base/'+data_type+'/port_'+str(port)+'_depth_1.npz')
+r_b2s1, f_b2s1 = readData('datasets/'+var+'_switch_1_and_2/'+data_type+'/port_'+str(port)+'_depth_1.npz')
+r_b2s3, f_b2s3 = readData('datasets/'+var+'_switch_2_and_3/'+data_type+'/port_'+str(port)+'_depth_1.npz')
 
-x1 = StandardScaler().fit_transform(r1)
-x2 = StandardScaler().fit_transform(r2)
-x3 = StandardScaler().fit_transform(r3)
-x = np.concatenate((x1,x2,x3), axis=0)
+start = 1100
+end = 1200
 
-y = np.array(["skin 1"] * len(x1) + ["skin 2"] * len(x2) + ["skin 3"] * len(x3))
+mean_r_b2s2 = np.mean(r_b2s2[start:end], axis=0)
+mean_r_b2s1 = np.mean(r_b2s1[start:end], axis=0)
+mean_r_b2s3 = np.mean(r_b2s3[start:end], axis=0)
 
-pca = PCA(n_components=1)
-principalComponents = pca.fit_transform(x)
-principalDf = pd.DataFrame(data = principalComponents, columns = ['principal component 1'])
-principalDf['Skin Number'] = y
+sd_r_b2s2 = np.std(r_b2s2[start:end], axis=0)
+sd_r_b2s1 = np.std(r_b2s1[start:end], axis=0)
+sd_r_b2s3 = np.std(r_b2s3[start:end], axis=0)
 
-fig = plt.figure(figsize = (8,8))
-ax = fig.add_subplot(1,1,1)
-ax.set_xlabel('Time', fontsize = 15)
-ax.set_ylabel('Principal Component 1', fontsize = 15)
-ax.set_title('1 component PCA', fontsize = 20)
+x = range(15)
 
-skin1 = principalDf.loc[principalDf['Skin Number'] == 'skin 1'].reset_index()
-skin2 = principalDf.loc[principalDf['Skin Number'] == 'skin 2'].reset_index()
-skin3 = principalDf.loc[principalDf['Skin Number'] == 'skin 3'].reset_index()
+plt.errorbar(x, mean_r_b2s2, sd_r_b2s2, linestyle='None', marker='o', label="Board 1, Skin 1")
+plt.errorbar(x, mean_r_b2s1, sd_r_b2s1, linestyle='None', marker='o', label="Board 1, Skin 2")
+plt.errorbar(x, mean_r_b2s3, sd_r_b2s3, linestyle='None', marker='o', label="Board 1, Skin 3")
 
-plt.plot(skin1['principal component 1'], label="Skin 1")
-plt.plot(skin2['principal component 1'], label="Skin 2")
-plt.plot(skin3['principal component 1'], label="Skin 3")
 plt.legend()
-
-
-# Plot data
-#column = 10
-#plt.plot(r1[:,column], label="Skin 1")
-#plt.plot(r2[:,column], label="Skin 2")
-#plt.plot(r3[:,column], label="Skin 3")
-#plt.title("original setup")
-#plt.legend()
 plt.show()
 
